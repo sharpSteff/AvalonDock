@@ -284,6 +284,9 @@ namespace TestApp
 				case "VS2013Dark": theme = new Vs2013DarkTheme(); break;
 				case "VS2013Light": theme = new Vs2013LightTheme(); break;
 				case "VS2013Blue": theme = new Vs2013BlueTheme(); break;
+				case "VS2026Dark": theme = new VS2026DarkTheme(); break;
+				case "VS2026Light": theme = new VS2026LightTheme(); break;
+				case "VS2026Blue": theme = new VS2026BlueTheme(); break;
 				case "VS2022Dark": theme = new VS2022DarkTheme(); break;
 				case "VS2022Light": theme = new VS2022LightTheme(); break;
 				case "VS2022Blue": theme = new VS2022BlueTheme(); break;
