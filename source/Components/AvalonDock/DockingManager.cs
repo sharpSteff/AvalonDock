@@ -2320,36 +2320,52 @@ namespace AvalonDock
 		/// <param name="anchorable">The anchorable to dock.</param>
 		internal void ExecuteDockCommand(LayoutAnchorable anchorable)
 		{
-			var dockingArgs = new ContentDockingEventArgs(anchorable);
-			ContentDocking?.Invoke(this, dockingArgs);
-			if (dockingArgs.Cancel)
-				return;
-
-			var coreDockingArgs = new Core.Events.ContentCancelEventArgs(anchorable);
-			_coreContentDocking?.Invoke(this, coreDockingArgs);
-			if (coreDockingArgs.Cancel)
+			if (!RaiseContentDocking(anchorable))
 				return;
 
 			anchorable.Dock();
-			ContentDocked?.Invoke(this, new ContentDockedEventArgs(anchorable));
-			_coreContentDocked?.Invoke(this, new Core.Events.ContentEventArgs(anchorable));
+			RaiseContentDocked(anchorable);
 		}
 
 		/// <summary>Docks the specified content as a document.</summary>
 		/// <param name="content">The content to dock as a document.</param>
 		internal void ExecuteDockAsDocumentCommand(LayoutContent content)
 		{
-			var dockingArgs = new ContentDockingEventArgs(content);
-			ContentDocking?.Invoke(this, dockingArgs);
-			if (dockingArgs.Cancel)
-				return;
-
-			var coreDockingArgs = new Core.Events.ContentCancelEventArgs(content);
-			_coreContentDocking?.Invoke(this, coreDockingArgs);
-			if (coreDockingArgs.Cancel)
+			if (!RaiseContentDocking(content))
 				return;
 
 			content.DockAsDocument();
+			RaiseContentDocked(content);
+		}
+
+		/// <summary>
+		/// Raises the <see cref="ContentDocking"/> event (and its core counterpart) for the specified content.
+		/// This must run before any layout mutation starts, since it is the only point where the operation
+		/// can still be cancelled atomically.
+		/// </summary>
+		/// <param name="content">The content that is about to be docked.</param>
+		/// <returns><c>false</c> if a handler cancelled the operation; otherwise <c>true</c>.</returns>
+		internal bool RaiseContentDocking(LayoutContent content)
+		{
+			var dockingArgs = new ContentDockingEventArgs(content);
+			ContentDocking?.Invoke(this, dockingArgs);
+			if (dockingArgs.Cancel)
+				return false;
+
+			var coreDockingArgs = new Core.Events.ContentCancelEventArgs(content);
+			_coreContentDocking?.Invoke(this, coreDockingArgs);
+			return !coreDockingArgs.Cancel;
+		}
+
+		/// <summary>
+		/// Raises the <see cref="ContentDocked"/> event (and its core counterpart) for the specified content.
+		/// This is the single place that actually raises the event; every code path that docks content
+		/// (the Dock/Dock-as-Document commands, and every drag-and-drop target via <see cref="Controls.DropTarget{T}.Drop(Layout.LayoutFloatingWindow)"/>)
+		/// funnels through here once the content has landed back in the docked layout.
+		/// </summary>
+		/// <param name="content">The content that has just been docked.</param>
+		internal void RaiseContentDocked(LayoutContent content)
+		{
 			ContentDocked?.Invoke(this, new ContentDockedEventArgs(content));
 			_coreContentDocked?.Invoke(this, new Core.Events.ContentEventArgs(content));
 		}

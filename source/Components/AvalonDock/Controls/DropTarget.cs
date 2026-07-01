@@ -112,6 +112,23 @@ namespace AvalonDock.Controls
 		{
 			var root = floatingWindow.Root;
 			var currentActiveContent = floatingWindow.Root.ActiveContent;
+			var manager = root.Manager;
+
+			// Contents currently hosted in the floating window that are about to be docked. Captured before
+			// the drop is performed, since it moves them out of the floating window (and a bulk pane-group
+			// move never reparents them individually, so they can't be rediscovered afterwards by diffing
+			// Parent changes). Checking ContentDocking here, before any layout mutation starts, is also the
+			// only point where the operation can still be cancelled atomically.
+			var contentsToDock = floatingWindow.Descendents().OfType<LayoutContent>().ToArray();
+			if (manager != null)
+			{
+				foreach (var content in contentsToDock)
+				{
+					if (!manager.RaiseContentDocking(content))
+						return;
+				}
+			}
+
 			var fwAsAnchorable = floatingWindow as LayoutAnchorableFloatingWindow;
 
 			if (fwAsAnchorable != null)
@@ -122,6 +139,12 @@ namespace AvalonDock.Controls
 			{
 				var fwAsDocument = floatingWindow as LayoutDocumentFloatingWindow;
 				this.Drop(fwAsDocument);
+			}
+
+			if (manager != null)
+			{
+				foreach (var content in contentsToDock)
+					manager.RaiseContentDocked(content);
 			}
 
 			if (currentActiveContent == null)
