@@ -2340,6 +2340,8 @@ namespace AvalonDock
 
 		/// <summary>
 		/// Raises the <see cref="ContentDocking"/> event (and its core counterpart) for the specified content.
+		/// This must run before any layout mutation starts, since it is the only point where the operation
+		/// can still be cancelled atomically.
 		/// </summary>
 		/// <param name="content">The content that is about to be docked.</param>
 		/// <returns><c>false</c> if a handler cancelled the operation; otherwise <c>true</c>.</returns>
@@ -2355,7 +2357,12 @@ namespace AvalonDock
 			return !coreDockingArgs.Cancel;
 		}
 
-		/// <summary>Raises the <see cref="ContentDocked"/> event (and its core counterpart) for the specified content.</summary>
+		/// <summary>
+		/// Raises the <see cref="ContentDocked"/> event (and its core counterpart) for the specified content.
+		/// This is the single place that actually raises the event; every code path that docks content
+		/// (the Dock/Dock-as-Document commands, and every drag-and-drop target via <see cref="Controls.DropTarget{T}.Drop(Layout.LayoutFloatingWindow)"/>)
+		/// funnels through here once the content has landed back in the docked layout.
+		/// </summary>
 		/// <param name="content">The content that has just been docked.</param>
 		internal void RaiseContentDocked(LayoutContent content)
 		{
