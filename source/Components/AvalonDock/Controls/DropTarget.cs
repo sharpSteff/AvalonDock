@@ -112,6 +112,20 @@ namespace AvalonDock.Controls
 		{
 			var root = floatingWindow.Root;
 			var currentActiveContent = floatingWindow.Root.ActiveContent;
+			var manager = root.Manager;
+
+			// Contents currently hosted in the floating window that are about to be docked.
+			// Must be captured before the drop is performed, as it moves them out of the floating window.
+			var contentsToDock = floatingWindow.Descendents().OfType<LayoutContent>().ToArray();
+			if (manager != null)
+			{
+				foreach (var content in contentsToDock)
+				{
+					if (!manager.RaiseContentDocking(content))
+						return;
+				}
+			}
+
 			var fwAsAnchorable = floatingWindow as LayoutAnchorableFloatingWindow;
 
 			if (fwAsAnchorable != null)
@@ -122,6 +136,12 @@ namespace AvalonDock.Controls
 			{
 				var fwAsDocument = floatingWindow as LayoutDocumentFloatingWindow;
 				this.Drop(fwAsDocument);
+			}
+
+			if (manager != null)
+			{
+				foreach (var content in contentsToDock)
+					manager.RaiseContentDocked(content);
 			}
 
 			if (currentActiveContent == null)
