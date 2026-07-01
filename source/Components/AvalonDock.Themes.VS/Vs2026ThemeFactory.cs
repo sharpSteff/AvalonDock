@@ -17,6 +17,14 @@ namespace AvalonDock.Themes.VS
 	/// </remarks>
 	internal static class Vs2026ThemeFactory
 	{
+		/// <summary>
+		/// Builds a resource dictionary by merging a base VS theme palette with a VS2026 JSON override.
+		/// </summary>
+		/// <param name="baseVsThemeResource">The embedded resource name of the base VS theme file (e.g., VS2022 .vstheme).</param>
+		/// <param name="jsonOverrideResource">The embedded resource name of the VS2026 JSON override file containing token overrides.</param>
+		/// <param name="genericXamlUri">The URI to the generic XAML resource dictionary for theme styling.</param>
+		/// <returns>A <see cref="ResourceDictionary"/> containing the merged theme colors and styles.</returns>
+		/// <exception cref="InvalidOperationException">Thrown if either the base or override resource cannot be found.</exception>
 		public static ResourceDictionary Build(string baseVsThemeResource, string jsonOverrideResource, Uri genericXamlUri)
 		{
 			VsThemeColorPalette basePalette;
@@ -35,6 +43,12 @@ namespace AvalonDock.Themes.VS
 			return VsThemeResourceBuilder.Build(merged, genericXamlUri);
 		}
 
+		/// <summary>
+		/// Opens an embedded manifest resource stream from the current assembly.
+		/// </summary>
+		/// <param name="name">The fully qualified name of the embedded resource.</param>
+		/// <returns>A <see cref="Stream"/> containing the resource data.</returns>
+		/// <exception cref="InvalidOperationException">Thrown if the resource with the specified name does not exist.</exception>
 		private static Stream OpenResource(string name)
 		{
 			var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
