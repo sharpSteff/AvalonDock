@@ -13,10 +13,15 @@ namespace AvalonDockTest
 	/// Covers issue:
 	///   #599 - ContentDocking / ContentDocked never fire when content is re-docked
 	///
-	/// The events are raised by <c>DockingManager.RaiseContentDocking</c>/<c>RaiseContentDocked</c>,
-	/// through which every docking path funnels (the Dock / Dock-as-Document commands exercised here,
-	/// and the drag-and-drop drop targets). These tests drive the command entry points directly and
-	/// therefore need neither a shown window nor the dispatcher message loop: an unshown
+	/// ContentDocking (cancellable) is raised at the operation entry points before any layout mutation.
+	/// ContentDocked is raised from a single place - <c>DockingManager.OnLayoutContentsStructureChanged</c> -
+	/// which <see cref="AvalonDock.Layout.LayoutRoot"/> invokes from the points every structural layout
+	/// operation finalizes through (<c>CollectGarbage</c> and the floating-windows collection change),
+	/// detecting floating-to-docked transitions by state rather than by call site. This makes the event
+	/// fire for the commands, for drag-and-drop drops, and for direct calls to the public
+	/// <see cref="AvalonDock.Layout.LayoutContent.Dock"/> API alike.
+	///
+	/// These tests need neither a shown window nor the dispatcher message loop: an unshown
 	/// <see cref="DockingManager"/> has <see cref="System.Windows.FrameworkElement.IsLoaded"/> == false,
 	/// so assigning a layout performs model bookkeeping only and never realizes floating-window controls.
 	/// </summary>
@@ -159,6 +164,36 @@ namespace AvalonDockTest
 			Assert.That(coreDockingRaised[0], Is.SameAs(floating), "Core ContentDocking should report the docked content.");
 			Assert.That(coreDockedRaised.Count, Is.EqualTo(1), "Core IDockingManager.ContentDocked should fire (Issue #599).");
 			Assert.That(coreDockedRaised[0], Is.SameAs(floating), "Core ContentDocked should report the docked content (Issue #599).");
+		}
+
+		/// <summary>
+		/// Docking through the public <see cref="LayoutContent.Dock"/> API (not the command) must also raise
+		/// ContentDocked, since the event is detected from the layout transition itself. ContentDocking is
+		/// not raised here: the app invoked the operation directly, so there is nothing to cancel.
+		/// </summary>
+		[Test]
+		public void PublicDockApi_FiresContentDocked_Issue599()
+		{
+			var manager = new DockingManager();
+			var dockedPane = new LayoutAnchorablePane();
+			dockedPane.Children.Add(new LayoutAnchorable { Title = "Keeper", ContentId = "keeper" });
+
+			var floating = new LayoutAnchorable { Title = "Tool", ContentId = "tool" };
+			var root = BuildRootWithFloatingAnchorable(dockedPane, floating);
+			manager.Layout = root;
+
+			var dockingRaised = new List<LayoutContent>();
+			var dockedRaised = new List<LayoutContent>();
+			manager.ContentDocking += (s, e) => dockingRaised.Add(e.Content);
+			manager.ContentDocked += (s, e) => dockedRaised.Add(e.Content);
+
+			floating.Dock();
+
+			Assert.That(dockingRaised, Is.Empty,
+				"ContentDocking is an entry-point event; a direct Dock() call has nothing to cancel.");
+			Assert.That(dockedRaised.Count, Is.EqualTo(1), "ContentDocked should fire for a direct Dock() call (Issue #599).");
+			Assert.That(dockedRaised[0], Is.SameAs(floating), "ContentDocked should report the docked content.");
+			Assert.That(floating.Parent, Is.SameAs(dockedPane), "The anchorable should reattach to its previous docked pane.");
 		}
 
 		/// <summary>
