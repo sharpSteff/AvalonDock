@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Windows.Threading;
 using AvalonDock.Core;
@@ -40,7 +41,8 @@ public partial class TerminalViewModel : ObservableToolboxBase, IDisposable
 			{
 				StartInfo = new ProcessStartInfo
 				{
-					FileName = "powershell",
+					// Absolute path so the shell cannot be hijacked via a manipulated PATH (Sonar S4036).
+					FileName = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe"),
 					UseShellExecute = false,
 					RedirectStandardInput = true,
 					RedirectStandardOutput = true,
