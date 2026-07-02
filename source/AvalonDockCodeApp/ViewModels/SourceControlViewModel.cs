@@ -265,8 +265,6 @@ public partial class SourceControlViewModel : ObservableToolboxBase
 	{
 		try
 		{
-			// git has no fixed install location; like any developer tool it is resolved via PATH by design.
-#pragma warning disable S4036 // Searching commands in PATH
 			using var process = new Process
 			{
 				StartInfo = new ProcessStartInfo
@@ -280,7 +278,6 @@ public partial class SourceControlViewModel : ObservableToolboxBase
 					CreateNoWindow = true
 				}
 			};
-#pragma warning restore S4036
 			process.Start();
 			var output = process.StandardOutput.ReadToEnd();
 			process.WaitForExit(5000);
