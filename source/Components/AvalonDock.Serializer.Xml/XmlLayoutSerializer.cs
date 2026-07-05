@@ -17,7 +17,7 @@ namespace AvalonDock.Serializer.Xml
 		// ship. In .NET > 6 that probe surfaced as a "file not found" error.
 		// Using the XmlSerializer(Type, XmlAttributeOverrides) overload bypasses
 		// the generated-assembly lookup entirely (see PR #606).
-		private static readonly XmlSerializer DtoSerializer = new XmlSerializer(typeof(LayoutRootDto), new XmlAttributeOverrides());
+		private static readonly XmlSerializer DtoSerializer = new XmlSerializer(typeof(LayoutRootDto));
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="XmlLayoutSerializer"/> class.
