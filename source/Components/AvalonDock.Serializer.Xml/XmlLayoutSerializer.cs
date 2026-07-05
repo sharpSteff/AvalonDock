@@ -12,7 +12,12 @@ namespace AvalonDock.Serializer.Xml
 	/// </summary>
 	public class XmlLayoutSerializer : LayoutSerializerBase
 	{
-		private static readonly XmlSerializer DtoSerializer = new XmlSerializer(typeof(LayoutRootDto));
+		// The XmlSerializer(Type) constructor probes for a pre-generated
+		// "<Assembly>.XmlSerializers" companion assembly that AvalonDock does not
+		// ship. In .NET > 6 that probe surfaced as a "file not found" error.
+		// Using the XmlSerializer(Type, XmlAttributeOverrides) overload bypasses
+		// the generated-assembly lookup entirely (see PR #606).
+		private static readonly XmlSerializer DtoSerializer = new XmlSerializer(typeof(LayoutRootDto), new XmlAttributeOverrides());
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="XmlLayoutSerializer"/> class.

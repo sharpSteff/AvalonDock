@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Xml.Serialization;
 using NUnit.Framework;
@@ -767,6 +769,125 @@ namespace AvalonDockTest
 			// items. With our fake (empty Descendents), the event won't fire,
 			// but we verify we can subscribe without error.
 			Assert.That(callbackInvoked, Is.False);
+		}
+
+		#endregion
+
+		#region PR #606 regression: XmlSerializers assembly resolution
+
+		/// <summary>
+		/// Collects <see cref="FileNotFoundException"/>s referencing a pre-generated
+		/// <c>*.XmlSerializers</c> assembly that are raised (as first-chance exceptions)
+		/// while <paramref name="action"/> runs.
+		/// </summary>
+		/// <remarks>
+		/// The <see cref="XmlSerializer"/> constructors that take only a
+		/// <see cref="Type"/> (or a type plus default namespace) probe for a
+		/// pre-generated serialization assembly named
+		/// <c>&lt;Assembly&gt;.XmlSerializers</c>. AvalonDock never ships such an
+		/// assembly, so the probe fails; in .NET &gt; 6 this surfaced as the
+		/// "file not found" error reported in PR #606. The
+		/// <see cref="XmlSerializer(Type, XmlAttributeOverrides)"/> overload does
+		/// not perform that lookup.
+		/// </remarks>
+		private static IReadOnlyList<FileNotFoundException> CaptureXmlSerializersProbes(Action action)
+		{
+			var probes = new List<FileNotFoundException>();
+
+			void Handler(object sender, FirstChanceExceptionEventArgs e)
+			{
+				if (e.Exception is FileNotFoundException fnf &&
+					(fnf.Message?.IndexOf("XmlSerializers", StringComparison.OrdinalIgnoreCase) >= 0 ||
+					 fnf.FileName?.IndexOf("XmlSerializers", StringComparison.OrdinalIgnoreCase) >= 0))
+				{
+					lock (probes)
+					{
+						probes.Add(fnf);
+					}
+				}
+			}
+
+			AppDomain.CurrentDomain.FirstChanceException += Handler;
+			try
+			{
+				action();
+			}
+			finally
+			{
+				AppDomain.CurrentDomain.FirstChanceException -= Handler;
+			}
+
+			return probes;
+		}
+
+		[Test]
+		public void XmlSerializer_AttributeOverridesOverload_DoesNotProbeForGeneratedAssembly()
+		{
+			// The overload chosen by the PR #606 fix must not trigger the
+			// "<Assembly>.XmlSerializers" probe that caused the reported
+			// "file not found" error under .NET > 6.
+			var ns = new XmlSerializerNamespaces();
+			ns.Add(string.Empty, string.Empty);
+
+			var probes = CaptureXmlSerializersProbes(() =>
+			{
+				var serializer = new XmlSerializer(typeof(LayoutRootDto), new XmlAttributeOverrides());
+
+				using var stream = new MemoryStream();
+				serializer.Serialize(stream, CreateMinimalDto(), ns);
+
+				stream.Position = 0;
+				var roundTripped = serializer.Deserialize(stream);
+				Assert.That(roundTripped, Is.InstanceOf<LayoutRootDto>());
+			});
+
+			Assert.That(probes, Is.Empty,
+				"The XmlSerializer(Type, XmlAttributeOverrides) overload must not probe " +
+				"for a pre-generated '*.XmlSerializers' assembly (PR #606).");
+		}
+
+		[Test]
+		public void RoundTrip_ThroughXmlLayoutSerializer_DoesNotThrowFileNotFound()
+		{
+			// End-to-end regression for PR #606: exercising the production
+			// serializer must not surface the "file not found" error under .NET > 6.
+			var manager = new FakeDockingManager();
+			manager.Layout = new FakeLayoutRoot(CreateRichDto());
+			var serializer = new XmlLayoutSerializer(manager);
+
+			Assert.DoesNotThrow(() =>
+			{
+				using var stream = new MemoryStream();
+				serializer.Serialize(stream);
+
+				stream.Position = 0;
+				serializer.Deserialize(stream);
+			});
+
+			Assert.That(manager.Layout, Is.Not.Null);
+		}
+
+		[Test]
+		public void XmlLayoutSerializer_ProductionRoundTrip_DoesNotLeakXmlSerializersFileNotFound()
+		{
+			// Guards the production serialize/deserialize path against a
+			// '*.XmlSerializers' FileNotFoundException reaching the caller.
+			var manager = new FakeDockingManager();
+			manager.Layout = new FakeLayoutRoot(CreateMinimalDto());
+			var serializer = new XmlLayoutSerializer(manager);
+
+			var probes = CaptureXmlSerializersProbes(() =>
+			{
+				using var stream = new MemoryStream();
+				serializer.Serialize(stream);
+
+				stream.Position = 0;
+				serializer.Deserialize(stream);
+			});
+
+			Assert.That(probes, Is.Empty,
+				"Serializing/deserializing through XmlLayoutSerializer must not raise a " +
+				"'*.XmlSerializers' FileNotFoundException (PR #606).");
 		}
 
 		#endregion
