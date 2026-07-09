@@ -9,6 +9,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using AvalonDock.Layout;
+using AvalonDock.Platform;
 
 namespace AvalonDock.Controls
 {
@@ -133,7 +134,7 @@ namespace AvalonDock.Controls
 
 			IntPtr handleToFocus;
 			if (_modelFocusedWindowHandle.GetValue(model, out handleToFocus))
-				focused = IntPtr.Zero != Win32Helper.SetFocus(handleToFocus);
+				focused = PlatformProvider.Current.SetFocus(handleToFocus);
 
 			if (focused)
 			{
@@ -182,7 +183,7 @@ namespace AvalonDock.Controls
 		{
 			foreach (var manager in _managers)
 			{
-				var hostContainingFocusedHandle = manager.FindLogicalChildren<HwndHost>().FirstOrDefault(hw => Win32Helper.IsChild(hw.Handle, e.GotFocusWinHandle));
+				var hostContainingFocusedHandle = manager.FindLogicalChildren<HwndHost>().FirstOrDefault(hw => PlatformProvider.Current.IsChildWindow(hw.Handle, e.GotFocusWinHandle));
 
 				if (hostContainingFocusedHandle != null)
 				{

@@ -1,4 +1,5 @@
 using System;
+using AvalonDock.Platform;
 
 namespace AvalonDock.Controls
 {
@@ -55,6 +56,12 @@ namespace AvalonDock.Controls
 		/// </summary>
 		public void Attach()
 		{
+			// Global CBT window hooks are a native Windows feature. On cross-platform WPF hosts
+			// (for example LibreWPF on Linux) they are unavailable, so focus tracking degrades
+			// gracefully to WPF's own keyboard focus events instead of throwing here.
+			if (!PlatformProvider.Current.SupportsGlobalWindowHooks)
+				return;
+
 			_hookProc = new Win32Helper.HookProc(this.HookProc);
 			_windowHook = Win32Helper.SetWindowsHookEx(
 				Win32Helper.HookType.WH_CBT,
@@ -68,7 +75,11 @@ namespace AvalonDock.Controls
 		/// </summary>
 		public void Detach()
 		{
+			if (_windowHook == IntPtr.Zero)
+				return;
+
 			Win32Helper.UnhookWindowsHookEx(_windowHook);
+			_windowHook = IntPtr.Zero;
 		}
 
 		/// <summary>
