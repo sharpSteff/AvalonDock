@@ -33,6 +33,14 @@ namespace AvalonDock.Platform
 		/// </summary>
 		bool SupportsGlobalWindowHooks { get; }
 
+		/// <summary>
+		/// Gets a value indicating whether floating windows can be dragged through the native
+		/// window move loop (started with <c>WM_NCLBUTTONDOWN</c> / <c>HT_CAPTION</c> and driven by
+		/// <c>WM_MOVING</c>/<c>WM_EXITSIZEMOVE</c>). When <c>false</c> the docking framework uses a
+		/// managed, WPF mouse-capture based drag instead.
+		/// </summary>
+		bool SupportsNativeWindowMoveLoop { get; }
+
 		/// <summary>Sets the owner window of a top level window.</summary>
 		/// <param name="childHandle">The handle of the owned window.</param>
 		/// <param name="ownerHandle">The handle of the owner window (or <see cref="IntPtr.Zero"/> to clear it).</param>

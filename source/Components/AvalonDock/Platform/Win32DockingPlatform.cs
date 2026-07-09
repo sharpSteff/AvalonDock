@@ -28,6 +28,9 @@ namespace AvalonDock.Platform
 		public bool SupportsGlobalWindowHooks => true;
 
 		/// <inheritdoc/>
+		public bool SupportsNativeWindowMoveLoop => true;
+
+		/// <inheritdoc/>
 		public void SetOwnerWindow(IntPtr childHandle, IntPtr ownerHandle) => Win32Helper.SetOwner(childHandle, ownerHandle);
 
 		/// <inheritdoc/>

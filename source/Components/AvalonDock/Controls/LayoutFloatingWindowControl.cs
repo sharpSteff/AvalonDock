@@ -13,6 +13,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 
 using AvalonDock.Layout;
+using AvalonDock.Platform;
 using AvalonDock.Themes;
 using Microsoft.Windows.Shell;
 
@@ -384,11 +385,15 @@ namespace AvalonDock.Controls
 				_attachDrag = true;
 				Activated += OnActivated;
 			}
-			else
+			else if (PlatformProvider.Current.SupportsNativeWindowMoveLoop)
 			{
 				var windowHandle = new WindowInteropHelper(this).Handle;
 				var lParam = new IntPtr(((int)Left & 0xFFFF) | ((int)Top << 16));
 				Win32Helper.SendMessage(windowHandle, Win32Helper.WM_NCLBUTTONDOWN, new IntPtr(Win32Helper.HT_CAPTION), lParam);
+			}
+			else
+			{
+				StartManagedDrag();
 			}
 		}
 
@@ -657,9 +662,12 @@ namespace AvalonDock.Controls
 			this.UpdateOwnership();
 			ApplyResizeBorderThickness();
 
+			// On cross-platform WPF hosts (for example LibreWPF on Linux) the presentation source is
+			// not an HwndSource, so there is no native message pump to hook. Drag/dock is driven by the
+			// managed drag path in that case instead of the WM_MOVING/WM_EXITSIZEMOVE messages below.
 			_hwndSrc = PresentationSource.FromDependencyObject(this) as HwndSource;
 			_hwndSrcHook = FilterMessage;
-			_hwndSrc.AddHook(_hwndSrcHook);
+			_hwndSrc?.AddHook(_hwndSrcHook);
 			// Restore maximize state
 			var maximized = Model.Descendents().OfType<ILayoutElementForFloatingWindow>().Any(l => l.IsMaximized);
 			UpdateMaximizedState(maximized);
@@ -808,8 +816,16 @@ namespace AvalonDock.Controls
 
 			_attachDrag = false;
 			Show();
-			var lParam = new IntPtr(((int)mousePosition.X & 0xFFFF) | ((int)mousePosition.Y << 16));
-			Win32Helper.SendMessage(windowHandle, Win32Helper.WM_NCLBUTTONDOWN, new IntPtr(Win32Helper.HT_CAPTION), lParam);
+
+			if (PlatformProvider.Current.SupportsNativeWindowMoveLoop)
+			{
+				var lParam = new IntPtr(((int)mousePosition.X & 0xFFFF) | ((int)mousePosition.Y << 16));
+				Win32Helper.SendMessage(windowHandle, Win32Helper.WM_NCLBUTTONDOWN, new IntPtr(Win32Helper.HT_CAPTION), lParam);
+			}
+			else
+			{
+				StartManagedDrag();
+			}
 		}
 
 		private void UpdatePositionAndSizeOfPanes()
@@ -845,7 +861,14 @@ namespace AvalonDock.Controls
 			_isInternalChange = false;
 		}
 
-		private void UpdateDragPosition()
+		private void UpdateDragPosition() => UpdateDragPosition(Win32Helper.GetMousePosition());
+
+		/// <summary>
+		/// Feeds the current cursor position (in physical screen/device pixels, the same space as
+		/// <see cref="Win32Helper.GetMousePosition"/>) to the drag service, creating it on first use.
+		/// </summary>
+		/// <param name="screenDevicePosition">The cursor position in device pixels.</param>
+		private void UpdateDragPosition(Point screenDevicePosition)
 		{
 			if (_dragService == null)
 			{
@@ -855,9 +878,111 @@ namespace AvalonDock.Controls
 				SetIsDragging(true);
 			}
 
-			var mousePosition = Win32Helper.GetMousePosition();
-			_dragService.UpdateMouseLocation(mousePosition);
+			_dragService.UpdateMouseLocation(screenDevicePosition);
 		}
+
+		#region Managed (non-Win32) window drag
+
+		/// <summary>
+		/// The offset, in device-independent screen coordinates, between the window's top-left corner
+		/// and the cursor at the moment a managed drag started. Keeps the grabbed point under the cursor.
+		/// </summary>
+		private Vector _managedDragGrabOffset;
+
+		/// <summary>
+		/// Starts a managed, WPF mouse-capture based drag of this floating window. This replaces the
+		/// native <c>WM_NCLBUTTONDOWN</c> window move loop on platforms that do not provide it (for
+		/// example LibreWPF on Linux), while driving the exact same drag/drop hit-testing so that
+		/// docking works identically.
+		/// </summary>
+		private void StartManagedDrag()
+		{
+			if (!IsVisible)
+				Show();
+
+			if (PresentationSource.FromVisual(this) == null)
+				return;
+
+			// Work in device-independent screen coordinates, the same space as Window.Left/Top.
+			var startScreen = this.PointToScreenDPI(Mouse.GetPosition(this));
+			_managedDragGrabOffset = new Vector(startScreen.X - Left, startScreen.Y - Top);
+
+			PreviewMouseMove += ManagedDrag_MouseMove;
+			PreviewMouseLeftButtonUp += ManagedDrag_MouseUp;
+			LostMouseCapture += ManagedDrag_LostCapture;
+
+			CaptureMouse();
+		}
+
+		private void ManagedDrag_MouseMove(object sender, MouseEventArgs e)
+		{
+			if (e.LeftButton != MouseButtonState.Pressed)
+			{
+				EndManagedDrag(drop: true);
+				return;
+			}
+
+			var relative = e.GetPosition(this);
+
+			// Compute both coordinate spaces before moving the window: device-independent for
+			// positioning (Window.Left/Top) and device pixels for the drop hit-testing.
+			var screenDip = this.PointToScreenDPI(relative);
+			var screenDevice = this.PointToScreen(relative);
+
+			Left = screenDip.X - _managedDragGrabOffset.X;
+			Top = screenDip.Y - _managedDragGrabOffset.Y;
+
+			if (IsMaximized)
+				UpdateMaximizedState(false);
+
+			UpdateDragPosition(screenDevice);
+		}
+
+		private void ManagedDrag_MouseUp(object sender, MouseButtonEventArgs e) => EndManagedDrag(drop: true);
+
+		private void ManagedDrag_LostCapture(object sender, MouseEventArgs e) => EndManagedDrag(drop: false);
+
+		/// <summary>
+		/// Completes a managed drag: either drops onto the current target or aborts, then tears down
+		/// the mouse capture and event handlers. Mirrors the native <c>WM_EXITSIZEMOVE</c> handling.
+		/// </summary>
+		/// <param name="drop">When <c>true</c> the drag is committed as a drop; otherwise it is aborted.</param>
+		private void EndManagedDrag(bool drop)
+		{
+			// Detach handlers first so releasing the capture cannot re-enter through LostMouseCapture.
+			PreviewMouseMove -= ManagedDrag_MouseMove;
+			PreviewMouseLeftButtonUp -= ManagedDrag_MouseUp;
+			LostMouseCapture -= ManagedDrag_LostCapture;
+
+			if (IsMouseCaptured)
+				ReleaseMouseCapture();
+
+			UpdatePositionAndSizeOfPanes();
+
+			if (_dragService == null)
+			{
+				SetIsDragging(false);
+				return;
+			}
+
+			if (drop)
+			{
+				var dropLocation = this.PointToScreen(Mouse.GetPosition(this));
+				_dragService.Drop(dropLocation, out var dropFlag);
+				_dragService = null;
+				SetIsDragging(false);
+				if (dropFlag)
+					InternalClose();
+			}
+			else
+			{
+				_dragService.Abort();
+				_dragService = null;
+				SetIsDragging(false);
+			}
+		}
+
+		#endregion Managed (non-Win32) window drag
 
 		/// <summary>
 		/// Enable bindings.

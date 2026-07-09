@@ -28,6 +28,9 @@ namespace AvalonDock.Platform
 		public bool SupportsGlobalWindowHooks => false;
 
 		/// <inheritdoc/>
+		public bool SupportsNativeWindowMoveLoop => false;
+
+		/// <inheritdoc/>
 		public void SetOwnerWindow(IntPtr childHandle, IntPtr ownerHandle)
 		{
 			// Owner relationships are established through Window.Owner by the WPF layer.
