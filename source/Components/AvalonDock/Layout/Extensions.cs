@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using AvalonDock.Platform;
 
 namespace AvalonDock.Layout
 {
@@ -117,29 +117,23 @@ namespace AvalonDock.Layout
 		/// <param name="paneInsideFloatingWindow">The pane inside floating window.</param>
 		internal static void KeepInsideNearestMonitor_Issue20(this ILayoutElementForFloatingWindow paneInsideFloatingWindow)
 		{
-			var r = new Win32Helper.RECT { Left = (int)paneInsideFloatingWindow.FloatingLeft, Top = (int)paneInsideFloatingWindow.FloatingTop };
-			r.Bottom = r.Top + (int)paneInsideFloatingWindow.FloatingHeight;
-			r.Right = r.Left + (int)paneInsideFloatingWindow.FloatingWidth;
+			var windowRect = new System.Windows.Rect(
+				paneInsideFloatingWindow.FloatingLeft,
+				paneInsideFloatingWindow.FloatingTop,
+				paneInsideFloatingWindow.FloatingWidth,
+				paneInsideFloatingWindow.FloatingHeight);
 
-			uint MONITOR_DEFAULTTONEAREST = 0x00000002;
-			uint MONITOR_DEFAULTTONULL = 0x00000000;
+			if (!PlatformProvider.Current.TryGetWorkAreaToClampInto(windowRect, out var workArea))
+				return;
 
-			var monitor = Win32Helper.MonitorFromRect(ref r, MONITOR_DEFAULTTONULL);
-			if (monitor != System.IntPtr.Zero) return;
-			var nearestMonitor = Win32Helper.MonitorFromRect(ref r, MONITOR_DEFAULTTONEAREST);
-			if (nearestMonitor == System.IntPtr.Zero) return;
-			var monitorInfo = new Win32Helper.MonitorInfo();
-			monitorInfo.Size = Marshal.SizeOf(monitorInfo);
-			Win32Helper.GetMonitorInfo(nearestMonitor, monitorInfo);
-
-			if (paneInsideFloatingWindow.FloatingLeft < monitorInfo.Work.Left)
-				paneInsideFloatingWindow.FloatingLeft = monitorInfo.Work.Left + 10;
-			if (paneInsideFloatingWindow.FloatingLeft + paneInsideFloatingWindow.FloatingWidth > monitorInfo.Work.Right)
-				paneInsideFloatingWindow.FloatingLeft = monitorInfo.Work.Right - (paneInsideFloatingWindow.FloatingWidth + 10);
-			if (paneInsideFloatingWindow.FloatingTop < monitorInfo.Work.Top)
-				paneInsideFloatingWindow.FloatingTop = monitorInfo.Work.Top + 10;
-			if (paneInsideFloatingWindow.FloatingTop + paneInsideFloatingWindow.FloatingHeight > monitorInfo.Work.Bottom)
-				paneInsideFloatingWindow.FloatingTop = monitorInfo.Work.Bottom - (paneInsideFloatingWindow.FloatingHeight + 10);
+			if (paneInsideFloatingWindow.FloatingLeft < workArea.Left)
+				paneInsideFloatingWindow.FloatingLeft = workArea.Left + 10;
+			if (paneInsideFloatingWindow.FloatingLeft + paneInsideFloatingWindow.FloatingWidth > workArea.Right)
+				paneInsideFloatingWindow.FloatingLeft = workArea.Right - (paneInsideFloatingWindow.FloatingWidth + 10);
+			if (paneInsideFloatingWindow.FloatingTop < workArea.Top)
+				paneInsideFloatingWindow.FloatingTop = workArea.Top + 10;
+			if (paneInsideFloatingWindow.FloatingTop + paneInsideFloatingWindow.FloatingHeight > workArea.Bottom)
+				paneInsideFloatingWindow.FloatingTop = workArea.Bottom - (paneInsideFloatingWindow.FloatingHeight + 10);
 		}
 
 		/// <summary>

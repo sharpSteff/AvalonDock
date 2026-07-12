@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using AvalonDock.Layout;
+using AvalonDock.Platform;
 
 namespace AvalonDock.Controls
 {
@@ -146,7 +147,7 @@ namespace AvalonDock.Controls
 			Visibility = Visibility.Visible;
 			InvalidateMeasure();
 			UpdateWindowPos();
-			Win32Helper.BringWindowToTop(_internalHwndSource.Handle);
+			PlatformProvider.Current.BringWindowToTop(_internalHwndSource.Handle);
 		}
 
 		/// <summary>
@@ -172,17 +173,22 @@ namespace AvalonDock.Controls
 		{
 			get
 			{
-				var ptMouse = new Win32Helper.Win32Point();
-				if (!Win32Helper.GetCursorPos(ref ptMouse)) return false;
-				var location = this.PointToScreenDPI(new Point());
-				var rectWindow = this.GetScreenArea();
-				if (rectWindow.Contains(new Point(ptMouse.X, ptMouse.Y))) return true;
-
 				var manager = Model?.Root.Manager;
 				var anchor = manager?.FindVisualChildren<LayoutAnchorControl>().Where(c => c.Model == Model).FirstOrDefault();
 
+				if (PlatformProvider.Current.TryGetCursorPosition(out var ptMouse))
+				{
+					var rectWindow = this.GetScreenArea();
+					if (rectWindow.Contains(ptMouse)) return true;
+				}
+				else if (IsMouseOver)
+				{
+					// No global cursor position is available on this host (for example LibreWPF on
+					// Linux); rely on WPF hit-testing instead.
+					return true;
+				}
+
 				return anchor != null && anchor.IsMouseOver;
-				// location = anchor.PointToScreenDPI(new Point());
 			}
 		}
 
@@ -200,7 +206,7 @@ namespace AvalonDock.Controls
 			{ RootVisual = _internalHostPresenter };
 			AutomationProperties.SetName(_internalHostPresenter, "InternalWindowHost");
 			AddLogicalChild(_internalHostPresenter);
-			Win32Helper.BringWindowToTop(_internalHwndSource.Handle);
+			PlatformProvider.Current.BringWindowToTop(_internalHwndSource.Handle);
 			return new HandleRef(this, _internalHwndSource.Handle);
 		}
 

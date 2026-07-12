@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using AvalonDock.Platform;
 
 namespace AvalonDock
 {
@@ -35,7 +36,7 @@ namespace AvalonDock
 			else
 			{
 				if (GetParentWindowHandle(element, out IntPtr parentHwnd))
-					Win32Helper.SetOwner(new WindowInteropHelper(window).Handle, parentHwnd);
+					PlatformProvider.Current.SetOwnerWindow(new WindowInteropHelper(window).Handle, parentHwnd);
 			}
 		}
 
@@ -49,7 +50,7 @@ namespace AvalonDock
 			if (window.Owner != null)
 				return new WindowInteropHelper(window.Owner).Handle;
 			else
-				return Win32Helper.GetOwner(new WindowInteropHelper(window).Handle);
+				return PlatformProvider.Current.GetOwnerWindow(new WindowInteropHelper(window).Handle);
 		}
 
 		/// <summary>
@@ -65,7 +66,7 @@ namespace AvalonDock
 			if (!(PresentationSource.FromVisual(element) is HwndSource wpfHandle))
 				return false;
 
-			hwnd = Win32Helper.GetParent(wpfHandle.Handle);
+			hwnd = PlatformProvider.Current.GetParentWindow(wpfHandle.Handle);
 			if (hwnd == IntPtr.Zero)
 				hwnd = wpfHandle.Handle;
 			return true;
@@ -83,7 +84,7 @@ namespace AvalonDock
 			}
 			else
 			{
-				Win32Helper.SetOwner(new WindowInteropHelper(window).Handle, IntPtr.Zero);
+				PlatformProvider.Current.SetOwnerWindow(new WindowInteropHelper(window).Handle, IntPtr.Zero);
 			}
 		}
 	}

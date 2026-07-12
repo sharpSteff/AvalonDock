@@ -15,6 +15,7 @@ using System.Windows.Markup;
 using System.Windows.Threading;
 using AvalonDock.Controls;
 using AvalonDock.Layout;
+using AvalonDock.Platform;
 using AvalonDock.Themes;
 
 namespace AvalonDock
@@ -2104,14 +2105,26 @@ namespace AvalonDock
 		{
 			var parentWindow = Window.GetWindow(this);
 			var windowParentHandle = parentWindow != null ? new WindowInteropHelper(parentWindow).Handle : Process.GetCurrentProcess().MainWindowHandle;
-			var currentHandle = Win32Helper.GetWindow(windowParentHandle, (uint)Win32Helper.GetWindow_Cmd.GW_HWNDFIRST);
-			while (currentHandle != IntPtr.Zero)
+			var orderedHandles = PlatformProvider.Current.GetTopLevelWindowsByZOrder(windowParentHandle);
+
+			if (orderedHandles.Count == 0)
+			{
+				// Managed fallback (for example LibreWPF on Linux): no native z-order is available,
+				// so return the floating windows in the manager's own creation order.
+				foreach (var fw in _fwList)
+				{
+					if (fw.Model?.Root != null && fw.Model.Root.Manager == this)
+						yield return fw;
+				}
+
+				yield break;
+			}
+
+			foreach (var currentHandle in orderedHandles)
 			{
 				var ctrl = _fwList.FirstOrDefault(fw => new WindowInteropHelper(fw).Handle == currentHandle);
 				if (ctrl != null && ctrl.Model.Root != null && ctrl.Model.Root.Manager == this)
 					yield return ctrl;
-
-				currentHandle = Win32Helper.GetWindow(currentHandle, (uint)Win32Helper.GetWindow_Cmd.GW_HWNDNEXT);
 			}
 		}
 
@@ -2127,28 +2140,42 @@ namespace AvalonDock
 
 			var parentWindow = Window.GetWindow(this);
 			var windowParentHandle = parentWindow != null ? new WindowInteropHelper(parentWindow).Handle : Process.GetCurrentProcess().MainWindowHandle;
-			var b = Win32Helper.GetWindowZOrder(windowParentHandle, out var mainWindow_z);
-			var currentHandle = Win32Helper.GetWindow(windowParentHandle, (uint)Win32Helper.GetWindow_Cmd.GW_HWNDFIRST);
-			while (currentHandle != IntPtr.Zero)
+			var orderedHandles = PlatformProvider.Current.GetTopLevelWindowsByZOrder(windowParentHandle);
+
+			if (orderedHandles.Count == 0)
 			{
+				// Managed fallback (for example LibreWPF on Linux): no native z-order is available,
+				// so treat every visible overlay host as being above the main window.
 				for (int i = 0; i < _fwList.Count; i++)
 				{
 					var fw = _fwList[i];
-					if (fw is IOverlayWindowHost host && fw != dragFloatingWindow && fw.IsVisible)
+					if (fw is IOverlayWindowHost host && fw != dragFloatingWindow && fw.IsVisible
+						&& fw.Model.Root != null && fw.Model.Root.Manager == this)
+						topFloatingWindows.Add(host);
+				}
+			}
+			else
+			{
+				PlatformProvider.Current.TryGetWindowZOrder(windowParentHandle, out var mainWindow_z);
+				foreach (var currentHandle in orderedHandles)
+				{
+					for (int i = 0; i < _fwList.Count; i++)
 					{
-						var fw_hwnd = new WindowInteropHelper(fw).Handle;
-						if (currentHandle == fw_hwnd && fw.Model.Root != null && fw.Model.Root.Manager == this)
+						var fw = _fwList[i];
+						if (fw is IOverlayWindowHost host && fw != dragFloatingWindow && fw.IsVisible)
 						{
-							if (fw.OwnedByDockingManagerWindow || (Win32Helper.GetWindowZOrder(fw_hwnd, out var fw_z) && fw_z > mainWindow_z))
-								topFloatingWindows.Add(host);
-							else
-								bottomFloatingWindows.Add(host);
-							break;
+							var fw_hwnd = new WindowInteropHelper(fw).Handle;
+							if (currentHandle == fw_hwnd && fw.Model.Root != null && fw.Model.Root.Manager == this)
+							{
+								if (fw.OwnedByDockingManagerWindow || (PlatformProvider.Current.TryGetWindowZOrder(fw_hwnd, out var fw_z) && fw_z > mainWindow_z))
+									topFloatingWindows.Add(host);
+								else
+									bottomFloatingWindows.Add(host);
+								break;
+							}
 						}
 					}
 				}
-
-				currentHandle = Win32Helper.GetWindow(currentHandle, (uint)Win32Helper.GetWindow_Cmd.GW_HWNDNEXT);
 			}
 
 			overlayWindowHosts.AddRange(topFloatingWindows);
