@@ -24,19 +24,32 @@ Two SDK arrangements are supported:
 
 | | SDK | portable-leg TFM |
 |---|---|---|
-| local dev (default) | locally built `~/wpf` LibreWPF, `11.0.0-dev` (see `global.json`) | `net11.0-windows` |
-| CI / no local LibreWPF | public `LibreWPF.Sdk` preview from nuget.org | `net10.0-windows` |
+| default (CI, contributors) | public `LibreWPF.Sdk` preview from nuget.org (pinned in `global.json`) | `net10.0-windows` |
+| LibreWPF development | locally built `~/wpf` LibreWPF, `11.0.0-dev` | `net11.0-windows` |
 
-To use the public SDK:
+The default needs nothing but a .NET 10 SDK:
 
 ```bash
-./eng/use-public-librewpf.sh   # swaps global.json + source/NuGet.config (don't commit)
-dotnet build source/Components/AvalonDock -c Release -p:LibreWpfTargetFramework=net10.0-windows
+dotnet build source/Components/AvalonDock -c Release
+```
+
+To hack on LibreWPF itself (e.g. to test WPF-internal fixes before they ship in a
+public preview), switch to a locally built SDK:
+
+```bash
+./eng/use-local-librewpf.sh   # swaps global.json + source/NuGet.config (don't commit)
+dotnet build source/Components/AvalonDock -c Release -p:LibreWpfTargetFramework=net11.0-windows
 ```
 
 The `LibreWpfTargetFramework` property (defined in `source/Directory.Build.props`)
-selects the TFM of the portable leg on non-Windows hosts; Windows multi-targeting is
-unchanged.
+selects the TFM of the portable leg on non-Windows hosts. On Windows hosts nothing
+changes: the multi-target legs (`net9.0-windows;net10.0-windows;net48`) all build as
+classic WPF (portable mode is forced off in `Directory.Build.props`).
+
+Note: the public preview does **not** yet contain lextm's WPF-internal captured-drag
+fixes (`MouseDevice.Synchronize` guard, portable window-move capture guard — see
+`docs/librewpf.md`), so interactive splitter/caption drags may still misbehave until
+those land upstream in LibreWPF.
 
 ## Running the sample apps headless
 

@@ -6,7 +6,7 @@
 # (creates a real floating window), and assert the layout model reflects it.
 #
 # Prerequisites:
-#   - eng/use-public-librewpf.sh applied (or a local LibreWPF SDK)
+#   - the default (public) LibreWPF SDK from nuget.org
 #   - MVVMTestApp built for $LIBREWPF_TFM
 #   - Xvfb, mesa-vulkan-drivers (lavapipe), fonts incl. eng/linux-test-fonts.sh
 set -uo pipefail

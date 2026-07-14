@@ -1,10 +1,8 @@
 name: LibreWPF Linux
 
-# Builds and smoke-tests the cross-platform (LibreWPF/ProGPU) leg on Linux.
-# The librewpf branch normally builds against a locally built LibreWPF SDK
-# (~/wpf, version 11.0.0-dev); CI swaps in the public LibreWPF.Sdk preview from
-# nuget.org via eng/use-public-librewpf.sh and retargets the portable leg to
-# net10.0-windows to match it.
+# Builds and smoke-tests the cross-platform (LibreWPF/ProGPU) leg on Linux
+# against the public LibreWPF.Sdk preview from nuget.org (the branch default;
+# version pinned in global.json).
 
 on:
   push:
@@ -33,9 +31,6 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Switch to public LibreWPF.Sdk
-        run: ./eng/use-public-librewpf.sh
-
       - name: Restore & build components
         run: |
           set -e
@@ -51,7 +46,7 @@ jobs:
             source/Components/AvalonDock.Themes.VS2013
           do
             echo "::group::$p"
-            dotnet build "$p" -c Release -p:LibreWpfTargetFramework=$LIBREWPF_TFM
+            dotnet build "$p" -c Release
             echo "::endgroup::"
           done
 
@@ -61,7 +56,7 @@ jobs:
           for p in source/TestApp source/MVVMTestApp source/AvalonDockCodeApp source/DevFlowIntegrationTests
           do
             echo "::group::$p"
-            dotnet build "$p" -c Release -p:LibreWpfTargetFramework=$LIBREWPF_TFM
+            dotnet build "$p" -c Release
             echo "::endgroup::"
           done
 
