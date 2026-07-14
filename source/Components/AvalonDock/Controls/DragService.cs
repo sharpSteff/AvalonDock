@@ -25,7 +25,7 @@ namespace AvalonDock.Controls
 		private bool _isDrag;
 
 		/// <summary>
-		/// The overlay window currently showing compass drop-target indicators for whichever host the
+		/// Gets the overlay window currently showing compass drop-target indicators for whichever host the
 		/// pointer is presently over, or null between/before drag positions have selected a host. Test-only
 		/// accessor (see TestInternalsVisibleTo.cs) so a test can enumerate <see cref="IOverlayWindow.GetTargets"/>
 		/// by <see cref="DropTargetType"/> and get each indicator's real screen bounds during a live drag.

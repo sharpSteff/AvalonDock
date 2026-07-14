@@ -31,31 +31,31 @@ namespace AvalonDock.Platform
 		internal static IDpiService DpiService =>
 			_dpiService ??= CreateDpiService();
 
-	private static INativeWindowService CreateNativeWindowService()
-	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			return new MacOSNativeWindowService();
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			return new LinuxNativeWindowService();
-		return new WindowsNativeWindowService();
-	}
+		private static INativeWindowService CreateNativeWindowService()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				return new MacOSNativeWindowService();
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				return new LinuxNativeWindowService();
+			return new WindowsNativeWindowService();
+		}
 
-	private static ICursorService CreateCursorService()
-	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			return new MacOSCursorService();
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			return new LinuxCursorService();
-		return new WindowsCursorService();
-	}
+		private static ICursorService CreateCursorService()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				return new MacOSCursorService();
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				return new LinuxCursorService();
+			return new WindowsCursorService();
+		}
 
-	private static IDpiService CreateDpiService()
-	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			return new MacOSDpiService();
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			return new LinuxDpiService();
-		return new WindowsDpiService();
-	}
+		private static IDpiService CreateDpiService()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				return new MacOSDpiService();
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				return new LinuxDpiService();
+			return new WindowsDpiService();
+		}
 	}
 }

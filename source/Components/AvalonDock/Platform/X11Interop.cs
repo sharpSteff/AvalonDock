@@ -149,6 +149,8 @@ namespace AvalonDock.Platform
 		/// foreign window id produces a failed call instead of Xlib's default process abort.
 		/// Must be called under <see cref="Lock"/>.
 		/// </summary>
+		/// <param name="display">The X display connection the action operates on.</param>
+		/// <param name="action">The Xlib call sequence to run with errors suppressed.</param>
 		internal static void WithIgnoredErrors(IntPtr display, Action action)
 		{
 			_ignoreErrors ??= (d, e) => 0;

@@ -4466,3 +4466,24 @@ dotnet_diagnostic.S6618.severity = none
 # S2178: Short-circuit logic should be used - bug
 # S2930: "IDisposables" should be disposed - resource leak
 # S3011: Reflection should not be used to increase accessibility - security
+##########################################
+# Cross-platform interop layer (merged from the lextudio fork, see
+# Dirkster99/AvalonDock#609). P/Invoke surfaces and layout-mutation test
+# helpers: exhaustive XML docs and StyleCop layout rules add noise here,
+# so the documentation/layout rules are relaxed for these files only.
+##########################################
+[{Components/AvalonDock/Platform/*.cs,Components/AvalonDock/Layout/LayoutRootMutations.cs}]
+dotnet_diagnostic.sa1025.severity = none
+dotnet_diagnostic.sa1027.severity = none
+dotnet_diagnostic.sa1124.severity = none
+dotnet_diagnostic.sa1137.severity = none
+dotnet_diagnostic.sa1501.severity = none
+dotnet_diagnostic.sa1502.severity = none
+dotnet_diagnostic.sa1512.severity = none
+dotnet_diagnostic.sa1513.severity = none
+dotnet_diagnostic.sa1514.severity = none
+dotnet_diagnostic.sa1600.severity = none
+dotnet_diagnostic.sa1611.severity = none
+dotnet_diagnostic.sa1615.severity = none
+dotnet_diagnostic.sa1623.severity = none
+dotnet_diagnostic.ca1823.severity = none

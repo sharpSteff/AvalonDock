@@ -33,7 +33,7 @@ namespace AvalonDock.Controls
 		private DragService _dragService = null;
 
 		/// <summary>
-		/// The <see cref="DragService"/> driving the current drag of this floating window, or null when
+		/// Gets the <see cref="DragService"/> driving the current drag of this floating window, or null when
 		/// no drag is in progress. Test-only surface (see TestInternalsVisibleTo.cs): lets a test query
 		/// the live compass drop-target geometry (<see cref="DragService.CurrentOverlayWindow"/>) by
 		/// <see cref="DropTargetType"/> during a real drag, instead of guessing screen offsets.
@@ -425,8 +425,8 @@ namespace AvalonDock.Controls
 
 					if (_dragService != null)
 					{
-					var mousePosition = PlatformHelper.GetCursorPosition();
-					_dragService.Drop(mousePosition, out var dropFlag);
+						var mousePosition = PlatformHelper.GetCursorPosition();
+						_dragService.Drop(mousePosition, out var dropFlag);
 						_dragService = null;
 						SetIsDragging(false);
 						if (dropFlag) InternalClose();
@@ -681,6 +681,7 @@ namespace AvalonDock.Controls
 				_hwndSrcHook = FilterMessage;
 				_hwndSrc.AddHook(_hwndSrcHook);
 			}
+
 			// Restore maximize state
 			var maximized = Model.Descendents().OfType<ILayoutElementForFloatingWindow>().Any(l => l.IsMaximized);
 			UpdateMaximizedState(maximized);
@@ -880,9 +881,7 @@ namespace AvalonDock.Controls
 			_dragService.UpdateMouseLocation(mousePosition);
 		}
 
-		#region Portable (non-HWND) caption drag
-
-		// Managed replacement for the Win32 caption drag on backends without an HwndSource (LibreWPF).
+		// Portable (non-HWND) caption drag: managed replacement for the Win32 caption drag on backends without an HwndSource (LibreWPF).
 		// A press on the caption starts a mouse-captured move: each move repositions the window to
 		// follow the pointer and feeds the DragService (which shows the OverlayWindow drop targets),
 		// and the release drops onto the current target - the same DragService the WM_MOVING path uses.
@@ -890,8 +889,11 @@ namespace AvalonDock.Controls
 		private Point _portableDragOffset;   // pointer-to-window-origin offset, in screen coords
 		private Point _portableLastPointer;  // last pointer screen position seen during the drag
 
-		// The Win32 caption-drag path (WM_NCLBUTTONDOWN + WM_MOVING/WM_EXITSIZEMOVE) only works on real
-		// Windows HWNDs. Everywhere else (LibreWPF on macOS/Linux) use the managed caption drag.
+		/// <summary>
+		/// Gets a value indicating whether the managed caption drag replaces the Win32 caption-drag
+		/// path (WM_NCLBUTTONDOWN + WM_MOVING/WM_EXITSIZEMOVE), which only works on real Windows
+		/// HWNDs. True everywhere else (LibreWPF on macOS/Linux).
+		/// </summary>
 		internal static bool UsePortableCaptionDrag { get; } = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
 		private void OnPortableCaptionMouseDown(object sender, MouseButtonEventArgs e)
@@ -981,8 +983,6 @@ namespace AvalonDock.Controls
 			SetIsDragging(false);
 			if (dropHandled) InternalClose();
 		}
-
-		#endregion Portable (non-HWND) caption drag
 
 		/// <summary>
 		/// Enable bindings.

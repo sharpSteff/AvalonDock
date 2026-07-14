@@ -12,6 +12,7 @@ namespace AvalonDock.Platform
 		/// <summary>
 		/// Gets the current cursor position in screen coordinates.
 		/// </summary>
+		/// <returns>The cursor position in screen coordinates.</returns>
 		internal static Point GetCursorPosition()
 		{
 			var (x, y) = PlatformManager.CursorService.GetCursorPosition();
@@ -21,6 +22,7 @@ namespace AvalonDock.Platform
 		/// <summary>
 		/// Gets whether the left mouse button is pressed.
 		/// </summary>
+		/// <returns>True when the left mouse button is currently pressed.</returns>
 		internal static bool IsLeftButtonDown()
 		{
 			return PlatformManager.CursorService.IsLeftButtonDown();
@@ -30,6 +32,7 @@ namespace AvalonDock.Platform
 		/// Gets the window position in screen coordinates.
 		/// </summary>
 		/// <param name="windowHandle">The native window handle.</param>
+		/// <returns>The window position in screen coordinates.</returns>
 		internal static Point GetWindowPosition(IntPtr windowHandle)
 		{
 			var (x, y) = PlatformManager.NativeWindowService.GetWindowPosition(windowHandle);
@@ -86,6 +89,7 @@ namespace AvalonDock.Platform
 		/// <summary>
 		/// Gets the DPI scaling factor for the primary monitor.
 		/// </summary>
+		/// <returns>The DPI scale factor of the primary monitor (1.0 = 96 DPI).</returns>
 		internal static double GetPrimaryMonitorDpi()
 		{
 			return PlatformManager.DpiService.GetPrimaryMonitorDpi();
@@ -95,6 +99,7 @@ namespace AvalonDock.Platform
 		/// Gets the DPI scaling factor for the monitor containing the specified window.
 		/// </summary>
 		/// <param name="windowHandle">The native window handle.</param>
+		/// <returns>The DPI scale factor of the monitor containing the window (1.0 = 96 DPI).</returns>
 		internal static double GetMonitorDpi(IntPtr windowHandle)
 		{
 			return PlatformManager.DpiService.GetMonitorDpi(windowHandle);
@@ -103,6 +108,7 @@ namespace AvalonDock.Platform
 		/// <summary>
 		/// Gets the work area (excluding taskbar) of the primary monitor.
 		/// </summary>
+		/// <returns>The work area rectangle of the primary monitor.</returns>
 		internal static Rect GetPrimaryMonitorWorkArea()
 		{
 			return PlatformManager.DpiService.GetPrimaryMonitorWorkArea();
@@ -112,6 +118,7 @@ namespace AvalonDock.Platform
 		/// Gets the work area (excluding taskbar) of the monitor containing the specified window.
 		/// </summary>
 		/// <param name="windowHandle">The native window handle.</param>
+		/// <returns>The work area rectangle of the monitor containing the window.</returns>
 		internal static Rect GetMonitorWorkArea(IntPtr windowHandle)
 		{
 			return PlatformManager.DpiService.GetMonitorWorkArea(windowHandle);

@@ -36,6 +36,7 @@ namespace AvalonDock.Controls
 		/// TestInternalsVisibleTo.cs): lets DevFlow integration tests target a precise
 		/// <see cref="DropTargetType"/> compass indicator instead of guessing screen offsets.
 		/// </summary>
+		/// <returns>The detection area of this drop target in screen coordinates.</returns>
 		Rect GetScreenBounds();
 
 		/// <summary>

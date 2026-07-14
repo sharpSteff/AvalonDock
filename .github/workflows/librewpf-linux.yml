@@ -1,0 +1,95 @@
+name: LibreWPF Linux
+
+# Builds and smoke-tests the cross-platform (LibreWPF/ProGPU) leg on Linux.
+# The librewpf branch normally builds against a locally built LibreWPF SDK
+# (~/wpf, version 11.0.0-dev); CI swaps in the public LibreWPF.Sdk preview from
+# nuget.org via eng/use-public-librewpf.sh and retargets the portable leg to
+# net10.0-windows to match it.
+
+on:
+  push:
+    branches: [librewpf, 'claude/**']
+  pull_request:
+    branches: [librewpf]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LIBREWPF_TFM: net10.0-windows
+
+jobs:
+  build-and-smoke:
+    name: Build & Smoke Test (ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Switch to public LibreWPF.Sdk
+        run: ./eng/use-public-librewpf.sh
+
+      - name: Restore & build components
+        run: |
+          set -e
+          for p in \
+            source/Components/AvalonDock \
+            source/Components/AvalonDock.Serializer.Xml \
+            source/Components/AvalonDock.Themes.Aero \
+            source/Components/AvalonDock.Themes.Arc \
+            source/Components/AvalonDock.Themes.Expression \
+            source/Components/AvalonDock.Themes.Metro \
+            source/Components/AvalonDock.Themes.VS \
+            source/Components/AvalonDock.Themes.VS2010 \
+            source/Components/AvalonDock.Themes.VS2013
+          do
+            echo "::group::$p"
+            dotnet build "$p" -c Release -p:LibreWpfTargetFramework=$LIBREWPF_TFM
+            echo "::endgroup::"
+          done
+
+      - name: Build apps & test harnesses
+        run: |
+          set -e
+          for p in source/TestApp source/MVVMTestApp source/AvalonDockCodeApp source/DevFlowIntegrationTests
+          do
+            echo "::group::$p"
+            dotnet build "$p" -c Release -p:LibreWpfTargetFramework=$LIBREWPF_TFM
+            echo "::endgroup::"
+          done
+
+      - name: Run DevFlow integration test suite
+        # Without a running DevFlow agent the suite skips gracefully; this still
+        # validates the test protocol code end to end. The avd.* actions need
+        # instance-action discovery, which the published DevFlow agent packages
+        # don't support yet, so the suite is not pointed at a live TestApp here.
+        run: dotnet run --project source/DevFlowIntegrationTests -c Release
+
+      - name: Install runtime smoke-test prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb mesa-vulkan-drivers fontconfig \
+            fonts-liberation2 fonts-dejavu-core imagemagick python3-pip
+          pip3 install --user fonttools
+          ./eng/linux-test-fonts.sh
+
+      - name: Runtime smoke test (AvalonDock on LibreWPF under Xvfb)
+        run: ./eng/linux-smoke-test.sh
+        env:
+          SMOKE_LOG_DIR: ${{ github.workspace }}/smoke-logs
+
+      - name: Upload smoke test logs
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: linux-smoke-logs
+          path: smoke-logs/
+          retention-days: 14
+          if-no-files-found: ignore

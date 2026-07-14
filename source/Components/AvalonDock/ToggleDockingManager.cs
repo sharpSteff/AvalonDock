@@ -636,7 +636,7 @@ public class ToggleDockingManager : DockingManager
 		var moveToItem = new MenuItem { Header = "Move To" };
 		foreach (DockZone zone in Enum.GetValues(typeof(DockZone)))
 		{
-			var zoneLabel = System.Text.RegularExpressions.Regex.Replace(zone.ToString(), "(\\B[A-Z])", " $1");
+			var zoneLabel = System.Text.RegularExpressions.Regex.Replace(zone.ToString(), "(\\B[A-Z])", " $1", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
 			var z = zone;
 			var mi = new MenuItem { Header = zoneLabel };
 			mi.Click += (s, e) => MoveAnchorableToZone(anchorable, z);
