@@ -1,20 +1,46 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="LibreWPF.Sdk">
     <PropertyGroup>
         <RootNamespace>TestApp</RootNamespace>
-        <TargetFrameworks>net9.0-windows;net48</TargetFrameworks>
-        <UseWPF>true</UseWPF>
-        <UseWindowsForms>true</UseWindowsForms>
+        <!-- Single-TFM app: the DevFlow agent it embeds targets net8.0-windows, so no net48
+             leg. On non-Windows hosts it builds the LibreWPF portable leg. -->
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">$(LibreWpfTargetFramework)</TargetFramework>
+        <UseWindowsForms>false</UseWindowsForms>
         <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
         <ApplicationIcon />
         <OutputType>WinExe</OutputType>
         <StartupObject />
         <AssemblyName>TestApp</AssemblyName>
+        <!-- Signed with the same key as AvalonDock so AvalonDock's InternalsVisibleTo("TestApp") can
+             list this assembly's public key (strong-name-signed assemblies require friend assemblies
+             to be identified by public key, not name alone). Test-only; not part of any shipped app. -->
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>../Components/AvalonDock/sn.snk</AssemblyOriginatorKeyFile>
         <!-- Sample app: allow warnings -->
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
        </PropertyGroup>
     <ItemGroup>
         <Resource Include="**\*.png" />
     </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="UserControl1.cs" />
+        <Compile Remove="UserControl1.Designer.cs" />
+        <EmbeddedResource Remove="UserControl1.resx" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(ProGpuWpfUsePortableFrameworkReferences)' == 'true'">
+        <FrameworkReference Remove="Microsoft.WindowsDesktop.App" />
+        <FrameworkReference Remove="Microsoft.WindowsDesktop.App.WPF" />
+    </ItemGroup>
+    <Target Name="_TestAppRemoveWindowsDesktopTransitiveFrameworkReferences"
+            BeforeTargets="AddTransitiveFrameworkReferences"
+            Condition="'$(ProGpuWpfUsePortableFrameworkReferences)' == 'true'">
+        <ItemGroup>
+            <TransitiveFrameworkReference Remove="Microsoft.WindowsDesktop.App" />
+            <TransitiveFrameworkReference Remove="Microsoft.WindowsDesktop.App.WPF" />
+            <TransitiveFrameworkReference Remove="Microsoft.WindowsDesktop.App.WindowsForms" />
+        </ItemGroup>
+    </Target>
     <PropertyGroup>
         <ApplicationManifest>app.manifest</ApplicationManifest>
     </PropertyGroup>
@@ -28,5 +54,11 @@
       <ProjectReference Include="..\Components\AvalonDock.Themes.Metro\AvalonDock.Themes.Metro.csproj" />
       <ProjectReference Include="..\Components\AvalonDock.Themes.VS2010\AvalonDock.Themes.VS2010.csproj" />
       <ProjectReference Include="..\Components\AvalonDock.Themes.VS2013\AvalonDock.Themes.VS2013.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <!-- DevFlow agent published on nuget.org (was a local ProjectReference in the
+           lextudio fork this was merged from) -->
+      <PackageReference Include="LeXtudio.DevFlow.Agent.WPF" Version="0.1.14" />
+      <PackageReference Include="LeXtudio.DevFlow.Agent.Core" Version="0.1.14" />
     </ItemGroup>
 </Project>
