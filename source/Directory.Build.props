@@ -1,11 +1,15 @@
 <Project>
 	<PropertyGroup>
+		<!-- TFM of the LibreWPF (ProGPU/Silk.NET) portable leg. Defaults to the locally built
+		     11.0.0-dev SDK's TFM; CI overrides it (-p:LibreWpfTargetFramework=net10.0-windows)
+		     to match the public LibreWPF.Sdk preview on nuget.org. -->
+		<LibreWpfTargetFramework Condition="'$(LibreWpfTargetFramework)' == ''">net11.0-windows</LibreWpfTargetFramework>
 		<!-- Centralized Target Frameworks -->
 		<ComponentTargetFrameworks>net9.0-windows;net10.0-windows;net48</ComponentTargetFrameworks>
 		<TestTargetFrameworks>net9.0-windows;net10.0-windows;net48</TestTargetFrameworks>
 		<!-- On non-Windows hosts only the LibreWPF (ProGPU/Silk.NET) leg can build and run -->
-		<ComponentTargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net11.0-windows</ComponentTargetFrameworks>
-		<TestTargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net11.0-windows</TestTargetFrameworks>
+		<ComponentTargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('Windows'))">$(LibreWpfTargetFramework)</ComponentTargetFrameworks>
+		<TestTargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('Windows'))">$(LibreWpfTargetFramework)</TestTargetFrameworks>
 		<LangVersion>13</LangVersion>
 
 		<!-- Version Information -->
@@ -34,7 +38,7 @@
 		behave exactly like Microsoft.NET.Sdk.WindowsDesktop, so its portable mode is switched off.
 		(This file is imported after the LibreWPF Sdk.props defaults, so plain assignments win.)
 	-->
-	<PropertyGroup Condition="'$(_ProGpuWpfSdkImported)' == 'true' And '$(TargetFramework)' != '' And '$(TargetFramework)' != 'net11.0-windows'">
+	<PropertyGroup Condition="'$(_ProGpuWpfSdkImported)' == 'true' And '$(TargetFramework)' != '' And '$(TargetFramework)' != '$(LibreWpfTargetFramework)'">
 		<ProGpuWpfUsePortableFrameworkReferences>false</ProGpuWpfUsePortableFrameworkReferences>
 		<ProGpuWpfUsePortablePlatform>false</ProGpuWpfUsePortablePlatform>
 		<ProGpuWpfEnablePortableBootstrap>false</ProGpuWpfEnablePortableBootstrap>

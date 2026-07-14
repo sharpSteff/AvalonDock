@@ -8,5 +8,8 @@
       "$host$"
     ],
     "errorMessage": "The LibreWPF .NET 11 preview SDK wasn't found. Run ~/wpf/eng/common/dotnet.sh to install it into ~/wpf/.dotnet."
+  },
+  "msbuild-sdks": {
+    "LibreWPF.Sdk": "11.0.0-dev"
   }
 }
