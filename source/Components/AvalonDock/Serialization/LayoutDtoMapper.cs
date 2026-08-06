@@ -511,6 +511,12 @@ namespace AvalonDock.Serialization
 				content.ContentId = dto.ContentId;
 			content.IsSelected = dto.IsSelected;
 			content.IsLastFocusedDocument = dto.IsLastFocusedDocument;
+
+			// Only a string survives the round trip, so a tool tip built from a control or a binding
+			// is written as nothing and must not overwrite whatever the restored content carries.
+			if (dto.ToolTip != null)
+				content.ToolTip = dto.ToolTip;
+
 			content.FloatingLeft = dto.FloatingLeft;
 			content.FloatingTop = dto.FloatingTop;
 			content.FloatingWidth = dto.FloatingWidth;

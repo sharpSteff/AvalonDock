@@ -114,6 +114,19 @@ The callback receives a `LayoutSerializationCallbackEventArgs` with:
 | `Cancel` | `bool` | Set to `true` to drop this item entirely. |
 | `UnresolvedContentHandling` | `UnresolvedContentHandling` | What happens to this item when no content is supplied: `Remove` (default) drops it, `Hide` parks it in `LayoutRoot.Hidden` so content supplied later can restore it in place. |
 
+A parked anchorable comes back with `LayoutAnchorable.Show()` once its content arrives — the usual
+case for a tool window that lives in a plugin loaded after the layout was restored:
+
+```csharp
+var parked = dockingManager.Layout.Hidden.Single(a => a.ContentId == "pluginTool");
+parked.Content = plugin.CreateView();
+parked.Show();
+```
+
+`Show()` puts it back in the pane it was hidden from. If that pane is no longer part of the layout —
+a restored layout rebuilds the docked area from scratch — it docks to an existing tool window pane
+instead, creating one if the layout has none.
+
 ---
 
 ## MVVM Serialization
@@ -151,12 +164,15 @@ The serializer preserves:
 - ✅ Active/selected state
 - ✅ `ContentId` for each content item
 - ✅ `Title` and other metadata
+- ✅ `ToolTip`, when it holds plain text
 
 The serializer does **not** preserve:
 
 - ❌ Actual UI content (restored via callback)
 - ❌ View model state (you must persist this separately)
 - ❌ Runtime event handlers
+- ❌ A `ToolTip` built from a control or a binding — a layout file can only carry text, so such a
+  tool tip is left out and the restored item keeps whatever its content supplies
 
 ---
 
