@@ -164,15 +164,14 @@ The serializer preserves:
 - ✅ Active/selected state
 - ✅ `ContentId` for each content item
 - ✅ `Title` and other metadata
-- ✅ `ToolTip`, when it holds plain text
 
 The serializer does **not** preserve:
 
 - ❌ Actual UI content (restored via callback)
 - ❌ View model state (you must persist this separately)
 - ❌ Runtime event handlers
-- ❌ A `ToolTip` built from a control or a binding — a layout file can only carry text, so such a
-  tool tip is left out and the restored item keeps whatever its content supplies
+- ❌ `ToolTip` — it belongs to the content, not to the layout, and is pushed down from the view every
+  time the view is attached
 
 ---
 
