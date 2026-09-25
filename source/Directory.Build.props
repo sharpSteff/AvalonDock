@@ -50,6 +50,10 @@
 		<ProGpuWpfEnablePortableBootstrap>false</ProGpuWpfEnablePortableBootstrap>
 		<ProGpuWpfEnableWin32CompatShim>false</ProGpuWpfEnableWin32CompatShim>
 		<ProGpuWpfUseCurrentRuntimeIdentifier>false</ProGpuWpfUseCurrentRuntimeIdentifier>
+		<!-- Leave XAML to the WindowsDesktop SDK. With this on, LibreWPF.Sdk adds its own default
+		     Page/Resource globs and markup compiler on top of UseWPF's, which fails the build with
+		     NETSDK1022 (duplicate 'Page' items). -->
+		<ProGpuWpfUseWpfMarkup>false</ProGpuWpfUseWpfMarkup>
 		<RuntimeIdentifier></RuntimeIdentifier>
 		<UseWPF>true</UseWPF>
 	</PropertyGroup>
