@@ -9,7 +9,10 @@
         <RootNamespace>TestApp</RootNamespace>
         <!-- Windows keeps upstream's targets; LibreWPF (off Windows) only exists for net10.0-windows. -->
         <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net9.0-windows;net48</TargetFrameworks>
-        <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net10.0-windows</TargetFrameworks>
+        <!-- Singular on purpose: a one-item TargetFrameworks still runs an outer multi-targeting
+             build, and LibreWPF.Sdk's WinForms runtime-copy target (AfterTargets="Build") fails
+             there with MSB4057 because ResolveLockFileCopyLocalFiles only exists per framework. -->
+        <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net10.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>

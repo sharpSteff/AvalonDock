@@ -9,7 +9,9 @@
     <OutputType>WinExe</OutputType>
     <!-- Windows keeps upstream's targets; LibreWPF (off Windows) only exists for net10.0-windows. -->
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net9.0-windows;net48</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net10.0-windows</TargetFrameworks>
+    <!-- Singular on purpose: a one-item TargetFrameworks still runs an outer multi-targeting
+         build, where LibreWPF.Sdk's AfterTargets="Build" targets expect per-framework targets. -->
+    <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net10.0-windows</TargetFramework>
     <RootNamespace>AvalonDock.MVVMTestApp</RootNamespace>
     <AssemblyName>MVVMTestApp</AssemblyName>
     <UseWPF>true</UseWPF>
