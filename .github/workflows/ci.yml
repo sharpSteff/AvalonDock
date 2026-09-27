@@ -14,29 +14,9 @@ jobs:
     name: Build & Test
     runs-on: windows-latest
 
-    env:
-      DevFlowAgentPath: ${{ github.workspace }}/ui-labs/src/DevFlow
-
     steps:
-      # The maui-labs submodule contains generator snapshot files whose paths exceed MAX_PATH, so
-      # checking it out on Windows fails with "Filename too long" without this.
-      - name: Enable long paths
-        run: git config --global core.longpaths true
-
       - name: Checkout
         uses: actions/checkout@v7
-
-      # TestApp and MVVMTestApp reference the DevFlow agent from source on this branch, so the
-      # solution does not build anywhere without it. See the Linux job for why it is a source
-      # reference rather than a package.
-      - name: Checkout DevFlow agent (ui-labs)
-        uses: actions/checkout@v7
-        with:
-          repository: lextudio/ui-labs
-          ref: master
-          path: ui-labs
-          fetch-depth: 0
-          submodules: recursive
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -48,13 +28,10 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore source/AvalonDock.sln
 
-      # No --warnaserror on the command line: it overrides every project in the graph, and the graph
-      # now reaches outside this repository. TestApp and MVVMTestApp reference the DevFlow agent from
-      # source, so the switch was escalating warnings in third-party ui-labs code (CS0649 on interop
-      # structs whose fields the native side assigns) into build failures here. It also overrode the
-      # six projects in this repo that deliberately opt out with TreatWarningsAsErrors=false. The
-      # zero-warnings policy is unaffected: source/Directory.Build.props sets
-      # TreatWarningsAsErrors=true for everything that has not opted out.
+      # No --warnaserror on the command line: it overrides every project in the graph, including the
+      # sample apps that deliberately opt out with TreatWarningsAsErrors=false. The zero-warnings
+      # policy is unaffected: source/Directory.Build.props sets TreatWarningsAsErrors=true for
+      # everything that has not opted out.
       - name: Build
         run: dotnet build source/AvalonDock.sln --configuration Release --no-restore
 

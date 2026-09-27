@@ -1,7 +1,9 @@
 ﻿using System.Windows;
+#if LIBREWPF
 using LeXtudio.DevFlow.Agent.Core;
 using LeXtudio.DevFlow.Agent.Wpf;
 using Microsoft.Maui.DevFlow.Agent.Core;
+#endif
 
 namespace TestApp
 {
@@ -10,13 +12,17 @@ namespace TestApp
     /// </summary>
     public partial class App : Application
     {
+#if LIBREWPF
         private WpfAgentService _devFlowService;
+#endif
 
         public App()
         {
             //Dispatcher.Thread.CurrentUICulture = new System.Globalization.CultureInfo("ru");
         }
+#if LIBREWPF
 
+        // The DevFlow agent the Linux/macOS integration tests drive; only referenced for LibreWPF builds.
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -36,5 +42,6 @@ namespace TestApp
 
             return DevFlowAgentPortResolver.GetPortFromAssemblyMetadata() ?? AgentOptions.DefaultPort;
         }
+#endif
     }
 }

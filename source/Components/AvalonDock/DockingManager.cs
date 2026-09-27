@@ -262,7 +262,35 @@ namespace AvalonDock
 			DefaultStyleKeyProperty.OverrideMetadata(typeof(DockingManager), new FrameworkPropertyMetadata(typeof(DockingManager)));
 			FocusableProperty.OverrideMetadata(typeof(DockingManager), new FrameworkPropertyMetadata(false));
 			HwndSource.DefaultAcquireHwndFocusInMenuMode = false;
+#if LIBREWPF
+			ForceIdealTextFormattingOnPortableBackend();
+#endif
 		}
+
+#if LIBREWPF
+		/// <summary>
+		/// The themes set <see cref="System.Windows.Media.TextOptions.TextFormattingModeProperty"/> to
+		/// Display (menus, tab headers, title bars). LibreWPF's portable text formatter does not
+		/// support Display mode yet and throws PlatformNotSupportedException on the first text
+		/// measure, which takes the whole application down. Coerce the mode to Ideal for every
+		/// element so the themes keep working unchanged; Windows is not affected.
+		/// </summary>
+		private static void ForceIdealTextFormattingOnPortableBackend()
+		{
+			var property = System.Windows.Media.TextOptions.TextFormattingModeProperty;
+
+			// Only when nothing has claimed FrameworkElement's metadata for this property yet:
+			// overriding it twice throws.
+			if (!ReferenceEquals(property.GetMetadata(typeof(FrameworkElement)), property.DefaultMetadata))
+				return;
+
+			property.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(
+				System.Windows.Media.TextFormattingMode.Ideal,
+				FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender | FrameworkPropertyMetadataOptions.Inherits,
+				null,
+				(d, value) => System.Windows.Media.TextFormattingMode.Ideal));
+		}
+#endif
 
 		/// <summary>Initializes a new instance of the <see cref="DockingManager"/> class.</summary>
 		public DockingManager()

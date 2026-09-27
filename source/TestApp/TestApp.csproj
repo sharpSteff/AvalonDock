@@ -7,7 +7,12 @@
     <Import Project="Sdk.props" Sdk="LibreWPF.Sdk" Condition="'$(OS)' != 'Windows_NT'" />
     <PropertyGroup>
         <RootNamespace>TestApp</RootNamespace>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <!-- Windows keeps upstream's targets; LibreWPF (off Windows) only exists for net10.0-windows. -->
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net9.0-windows;net48</TargetFrameworks>
+        <!-- Singular on purpose: a one-item TargetFrameworks still runs an outer multi-targeting
+             build, and LibreWPF.Sdk's WinForms runtime-copy target (AfterTargets="Build") fails
+             there with MSB4057 because ResolveLockFileCopyLocalFiles only exists per framework. -->
+        <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net10.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
@@ -25,7 +30,6 @@
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <GitVersion_NoFetchEnabled>true</GitVersion_NoFetchEnabled>
         <GitVersionTaskEnabled>false</GitVersionTaskEnabled>
-        <ProGpuWpfRuntimeFrameworkVersion>11.0.0-preview.1.26104.118</ProGpuWpfRuntimeFrameworkVersion>
         <!-- Only the canonical LibreWinForms packages are published on nuget.org; the SDK's default
              LibreWinForms.Compatibility.System.Windows.Forms runtime is not. -->
         <ProGpuWpfUseCanonicalLibreWinForms Condition="'$(OS)' != 'Windows_NT'">true</ProGpuWpfUseCanonicalLibreWinForms>
@@ -70,15 +74,16 @@
            workspace, which is not a sibling of the repo root). -->
       <DevFlowAgentPath Condition="'$(DevFlowAgentPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../../ui-labs/src/DevFlow'))</DevFlowAgentPath>
     </PropertyGroup>
-    <ItemGroup>
+    <!-- The DevFlow agent only serves the LibreWPF (Linux/macOS) integration tests, so it is not
+         referenced on Windows; the matching code is behind #if LIBREWPF. -->
+    <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
       <!-- Referenced from a ui-labs checkout rather than the published
            LeXtudio.DevFlow.Agent.LibreWpf package for two reasons: the published 0.2.0 shipped an
            Aarch64-only DLL that fails to load on x64, and the Linux mouse injection (XTest) the
            DevFlow drag tests need is on upstream master (lextudio/ui-labs#3, merged) but not in any
            release yet - the newest, 0.2.2, predates the merge. Switch back to a PackageReference once
            a release contains it. -->
-      <ProjectReference Include="$(DevFlowAgentPath)/LeXtudio.DevFlow.Agent.Wpf/LeXtudio.DevFlow.Agent.Wpf.csproj" Condition="'$(OS)' == 'Windows_NT'" />
-      <ProjectReference Include="$(DevFlowAgentPath)/LeXtudio.DevFlow.Agent.LibreWpf/LeXtudio.DevFlow.Agent.LibreWpf.csproj" Condition="'$(OS)' != 'Windows_NT'" />
+      <ProjectReference Include="$(DevFlowAgentPath)/LeXtudio.DevFlow.Agent.LibreWpf/LeXtudio.DevFlow.Agent.LibreWpf.csproj" />
       <ProjectReference Include="$(DevFlowAgentPath)/LeXtudio.DevFlow.Agent.Core/LeXtudio.DevFlow.Agent.Core.csproj" />
     </ItemGroup>
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Condition="'$(OS)' == 'Windows_NT'" />
