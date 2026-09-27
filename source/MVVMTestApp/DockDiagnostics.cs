@@ -7,6 +7,7 @@
 // operates purely on the DockingManager layout model, so results are stable and
 // don't depend on injected OS mouse events.
 
+#if LIBREWPF
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -200,3 +201,4 @@ namespace AvalonDock.MVVMTestApp
 		});
 	}
 }
+#endif
