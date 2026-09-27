@@ -1,7 +1,10 @@
 <Project Sdk="LibreWPF.Sdk">
     <PropertyGroup>
         <RootNamespace>ToggleTestApp</RootNamespace>
-        <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+        <!-- Not $(TestTargetFrameworks): that includes net48 on Windows, and this app uses .NET-only
+             API (OperatingSystem, Index/Range, OpenFolderDialog, TrimEntries). -->
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net9.0-windows;net10.0-windows</TargetFrameworks>
+        <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net10.0-windows</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <ApplicationIcon />
         <OutputType>WinExe</OutputType>

@@ -138,7 +138,22 @@ namespace TestApp
 
 			this.DataContext = this;
 
+#if LIBREWPF
+			// The portable WindowsFormsHost cannot build its hosted child window yet: once it is
+			// attached to a window, HwndHost throws "BuildWindowCore failed to return the hosted child
+			// window handle" from the render loop and takes the whole app down. Keep the anchorable
+			// (the layout and tests rely on it) but give it plain WPF content until LibreWinForms
+			// supports hosting there.
+			dockManager.Layout.Descendents().OfType<LayoutAnchorable>().Single(a => a.ContentId == "WinFormsWindow").Content = new TextBlock
+			{
+				Text = "WinForms hosting is not supported on this platform yet",
+				TextWrapping = TextWrapping.Wrap,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center,
+			};
+#else
 			winFormsHost.Child = new UserControl1();
+#endif
 
 			UpdateThemeColors();
 
