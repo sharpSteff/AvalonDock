@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.VisualTree;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.Threading;
 using AvalonDock.Layout;
 
 namespace AvalonDock.Controls
@@ -39,6 +40,21 @@ namespace AvalonDock.Controls
 
 		/// <summary>Gets the host currently presenting this view, if any.</summary>
 		internal LayoutItemViewHost Host => Parent as LayoutItemViewHost;
+
+		/// <summary>
+		/// Gets the top level the view was last shown in. Its layout manager may still have the view queued
+		/// after the view has been detached, so the view only moves to another top level between layout passes.
+		/// </summary>
+		internal TopLevel LastTopLevel => _lastTopLevel != null && _lastTopLevel.TryGetTarget(out var topLevel) ? topLevel : null;
+
+		private WeakReference<TopLevel> _lastTopLevel;
+
+		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnAttachedToVisualTree(e);
+			var topLevel = TopLevel.GetTopLevel(this);
+			_lastTopLevel = topLevel == null ? null : new WeakReference<TopLevel>(topLevel);
+		}
 
 		/// <summary>Disconnects the view from its content and its host.</summary>
 		internal void Release()
@@ -102,6 +118,8 @@ namespace AvalonDock.Controls
 			AvaloniaProperty.Register<LayoutItemViewHost, LayoutItem>(nameof(LayoutItem));
 
 		/// <summary>Gets or sets the layout item whose view this host presents.</summary>
+		private bool _claimPosted;
+
 		public LayoutItem LayoutItem
 		{
 			get => GetValue(LayoutItemProperty);
@@ -141,6 +159,30 @@ namespace AvalonDock.Controls
 			var layoutItem = LayoutItem;
 			if (layoutItem?.LayoutElement == null) return;
 			var view = layoutItem.View;
+			if (ReferenceEquals(Child, view)) return;
+
+			// Moving the view out of another window while a layout pass may be running there leaves it in that
+			// window's layout queue. Take it over once the current passes are done instead.
+			var lastTopLevel = (view as LayoutItemView)?.LastTopLevel ?? TopLevel.GetTopLevel(view);
+			if (lastTopLevel != null && lastTopLevel != TopLevel.GetTopLevel(this))
+			{
+				if (_claimPosted) return;
+				_claimPosted = true;
+				Dispatcher.UIThread.Post(
+					() =>
+					{
+						_claimPosted = false;
+						if (this.IsAttachedToVisualTree() && ReferenceEquals(LayoutItem, layoutItem)) TakeView(view);
+					},
+					DispatcherPriority.Loaded);
+				return;
+			}
+
+			TakeView(view);
+		}
+
+		private void TakeView(Control view)
+		{
 			if (ReferenceEquals(Child, view)) return;
 			if (view is LayoutItemView itemView) itemView.Host?.ReleaseView();
 
