@@ -226,14 +226,16 @@ namespace AvalonDock.Controls
 
 		/// <summary>
 		/// Finds out whether the platform composites transparent windows. The transparency level is only known
-		/// once the window is shown, so it is shown tiny and far off screen first: a probe at the overlay's real
-		/// place would flash an opaque window over the host where transparency is not available.
+		/// once the window is shown, so it is shown as a single pixel at the overlay's origin first: shown at its
+		/// full size it would flash an opaque window over the host where transparency is not available. (A far
+		/// off-screen position is not an option: X11 window coordinates are 16 bit, and macOS moves windows that
+		/// are entirely off screen back onto it.)
 		/// </summary>
 		private bool ProbeTransparency(Window ownerWindow)
 		{
 			_hostWindow.Width = 1;
 			_hostWindow.Height = 1;
-			_hostWindow.Position = new PixelPoint(-32000, -32000);
+			_hostWindow.Position = new PixelPoint((int)System.Math.Round(ScreenArea.X), (int)System.Math.Round(ScreenArea.Y));
 			if (ownerWindow != null && ownerWindow.IsVisible) _hostWindow.Show(ownerWindow);
 			else _hostWindow.Show();
 			return _hostWindow.ActualTransparencyLevel != WindowTransparencyLevel.None;

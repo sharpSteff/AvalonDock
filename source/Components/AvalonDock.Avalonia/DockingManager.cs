@@ -2309,6 +2309,12 @@ namespace AvalonDock
 		/// <summary>Gets the anchorables that are currently detached into a standalone window.</summary>
 		public IEnumerable<LayoutAnchorable> DetachedAnchorables => _detachedAnchorables.Keys.ToList();
 
+		/// <summary>Gets the standalone window an anchorable is detached to, if any.</summary>
+		/// <param name="anchorable">The anchorable.</param>
+		/// <returns>The window, or <see langword="null"/>.</returns>
+		internal DetachedAnchorableWindow GetDetachedWindow(LayoutAnchorable anchorable)
+			=> anchorable != null && _detachedAnchorables.TryGetValue(anchorable, out var entry) ? entry.Window : null;
+
 		/// <summary>Gets a value indicating whether the given anchorable is currently hosted by a standalone window.</summary>
 		/// <param name="anchorable">The anchorable to test.</param>
 		/// <returns><see langword="true"/> when the anchorable is detached.</returns>
