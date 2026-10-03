@@ -73,8 +73,11 @@ namespace AvalonDock.Controls
 				return;
 			}
 
-			var template = manager.LayoutItemTemplate ?? manager.LayoutItemTemplateSelector?.SelectTemplate(Content, this);
-			if (template != null) ContentTemplate = template;
+			// Like WPF, content that is a control is shown as it is, and a template that does not match the
+			// content leaves it to the usual data template lookup.
+			var content = Content;
+			var template = content is Control ? null : manager.LayoutItemTemplate ?? manager.LayoutItemTemplateSelector?.SelectTemplate(content, this);
+			if (template != null && template.Match(content)) ContentTemplate = template;
 			else ClearValue(ContentTemplateProperty);
 		}
 
