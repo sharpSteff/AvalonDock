@@ -1,0 +1,99 @@
+name: AvalonDock.Avalonia
+
+# Builds AvalonDock.Avalonia and runs its headless tests and the platform tests on Windows, macOS and
+# Linux. Separate from ci.yml, which needs Windows for the WPF solution.
+on:
+  pull_request:
+    branches: [master, 'release/**']
+    paths:
+      - 'source/Components/AvalonDock.Avalonia/**'
+      - 'source/Components/AvalonDock.Core/**'
+      - 'source/AutomationTest/AvalonDock.Avalonia.Tests/**'
+      - 'source/AutomationTest/AvalonDock.Avalonia.PlatformTests/**'
+      - 'source/AvalonDockAvaloniaApp/**'
+      - 'source/AvalonDock.Avalonia.sln'
+      - 'source/Directory.Build.*'
+      - '.github/workflows/avalonia.yml'
+  push:
+    paths:
+      - 'source/Components/AvalonDock.Avalonia/**'
+      - 'source/Components/AvalonDock.Core/**'
+      - 'source/AutomationTest/AvalonDock.Avalonia.Tests/**'
+      - 'source/AutomationTest/AvalonDock.Avalonia.PlatformTests/**'
+      - 'source/AvalonDockAvaloniaApp/**'
+      - 'source/AvalonDock.Avalonia.sln'
+      - 'source/Directory.Build.*'
+      - '.github/workflows/avalonia.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  avalonia:
+    name: AvalonDock.Avalonia (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # The library targets net8.0 and net10.0; the tests, the platform runner and the sample run on net10.0.
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore source/AvalonDock.Avalonia.sln
+
+      - name: Build
+        run: dotnet build source/AvalonDock.Avalonia.sln --configuration Release --no-restore
+
+      # Avalonia.Headless renders with Skia off screen, so no display is needed.
+      - name: Headless tests
+        run: dotnet test source/AutomationTest/AvalonDock.Avalonia.Tests --configuration Release --no-build --logger "trx;LogFileName=avalonia.trx" --results-directory TestResults/avalonia
+
+      # The platform runner uses the real windowing backend of the OS (Win32, macOS, X11): real windows,
+      # real screen coordinates and the real drop target overlay. Linux gets an X server with a window
+      # manager, and runs twice: without a compositing manager the drop targets are drawn into the host
+      # window, with one they are shown in a transparent window - as on Windows and macOS, where that is
+      # required.
+      - name: Install X server (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb openbox xcompmgr
+
+      - name: Platform tests (Linux, no compositor)
+        if: runner.os == 'Linux'
+        run: |
+          Xvfb :99 -screen 0 1600x1000x24 &
+          sleep 2
+          DISPLAY=:99 openbox &
+          sleep 2
+          DISPLAY=:99 dotnet source/AutomationTest/AvalonDock.Avalonia.PlatformTests/bin/Release/net10.0/AvalonDock.Avalonia.PlatformTests.dll --screenshots TestResults/platform/no-compositor
+
+      - name: Platform tests (Linux, compositor)
+        if: runner.os == 'Linux'
+        run: |
+          DISPLAY=:99 xcompmgr &
+          sleep 2
+          DISPLAY=:99 dotnet source/AutomationTest/AvalonDock.Avalonia.PlatformTests/bin/Release/net10.0/AvalonDock.Avalonia.PlatformTests.dll --expect-transparent-overlay --screenshots TestResults/platform/compositor
+
+      - name: Platform tests (Windows, macOS)
+        if: runner.os != 'Linux'
+        run: dotnet source/AutomationTest/AvalonDock.Avalonia.PlatformTests/bin/Release/net10.0/AvalonDock.Avalonia.PlatformTests.dll --expect-transparent-overlay --screenshots TestResults/platform/${{ runner.os }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: avalonia-test-results-${{ matrix.os }}
+          path: TestResults
