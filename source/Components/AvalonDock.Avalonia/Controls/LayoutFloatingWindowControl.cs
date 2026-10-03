@@ -522,6 +522,18 @@ namespace AvalonDock.Controls
 			// Restore maximize state
 			var maximized = Model.Descendents().OfType<ILayoutElementForFloatingWindow>().Any(l => l.IsMaximized);
 			if (maximized) UpdateMaximizedState(true);
+
+			// The window manager may not put the window where it was asked to: macOS keeps windows below the
+			// menu bar, and window managers on Linux may place new windows themselves. Store where it ended up,
+			// once it is shown and again once the placement has settled.
+			_isPositionInitialized = true;
+			if (!IsDragging) UpdatePositionAndSizeOfPanes();
+			Dispatcher.UIThread.Post(
+				() =>
+				{
+					if (IsVisible && !IsDragging) UpdatePositionAndSizeOfPanes();
+				},
+				DispatcherPriority.Background);
 		}
 
 		/// <summary>Copies the inheritable values of the manager onto this top level, which cannot inherit them.</summary>
