@@ -1,0 +1,11 @@
+<Application
+	x:Class="AvalonDockAvaloniaApp.App"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ad="https://github.com/Dirkster99/AvalonDock"
+	RequestedThemeVariant="Light">
+	<Application.Styles>
+		<FluentTheme />
+		<ad:AvalonDockTheme />
+	</Application.Styles>
+</Application>

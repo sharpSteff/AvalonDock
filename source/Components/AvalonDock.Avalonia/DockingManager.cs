@@ -73,7 +73,7 @@ namespace AvalonDock
 		/// <summary>Whether a removal of deleted layout items is pending.</summary>
 		private bool _collectLayoutItemsPending = false;
 
-		/// <summary>The styles of the current <see cref="Theme"/>.</summary>
+		/// <summary>The styles of the current <see cref="DockTheme"/>.</summary>
 		private IStyle _themeStyles;
 
 		/// <summary>The layout engine used for layout tree operations.</summary>
@@ -717,18 +717,18 @@ namespace AvalonDock
 			set => SetValue(AllowAnchorRightClickContextMenuProperty, value);
 		}
 
-		/// <summary><see cref="Theme"/> property.</summary>
-		public static readonly new StyledProperty<Theme> ThemeProperty =
-			AvaloniaProperty.Register<DockingManager, Theme>("DockTheme");
+		/// <summary><see cref="DockTheme"/> property.</summary>
+		public static readonly StyledProperty<Theme> DockThemeProperty =
+			AvaloniaProperty.Register<DockingManager, Theme>(nameof(DockTheme));
 
 		/// <summary>
-		/// Gets or sets the AvalonDock theme. This is not the Avalonia <see cref="StyledElement.Theme"/> (the control
-		/// theme of the manager itself), which keeps its meaning through <see cref="StyledElement.ThemeProperty"/>.
+		/// Gets or sets the AvalonDock theme - <c>Theme</c> in the WPF library. It has another name here because
+		/// <see cref="StyledElement.Theme"/> is the control theme of the manager itself in Avalonia.
 		/// </summary>
-		public new Theme Theme
+		public Theme DockTheme
 		{
-			get => GetValue(ThemeProperty);
-			set => SetValue(ThemeProperty, value);
+			get => GetValue(DockThemeProperty);
+			set => SetValue(DockThemeProperty, value);
 		}
 
 		/// <summary><see cref="GridSplitterWidth"/> property.</summary>
@@ -940,7 +940,7 @@ namespace AvalonDock
 				if (Layout != null && !_insideInternalSetActiveContent) InternalSetActiveContent(change.NewValue);
 				ActiveContentChanged?.Invoke(this, EventArgs.Empty);
 			}
-			else if (change.Property == ThemeProperty)
+			else if (change.Property == DockThemeProperty)
 				OnThemeChanged(change.OldValue as Theme, change.NewValue as Theme);
 			else if (change.Property == LayoutItemContainerStyleProperty || change.Property == LayoutItemContainerStyleSelectorProperty)
 				AttachLayoutItems();
@@ -1332,7 +1332,7 @@ namespace AvalonDock
 
 		#region Theme
 
-		/// <summary>Called when <see cref="Theme"/> changes.</summary>
+		/// <summary>Called when <see cref="DockTheme"/> changes.</summary>
 		/// <param name="oldTheme">The previous theme.</param>
 		/// <param name="newTheme">The new theme.</param>
 		protected virtual void OnThemeChanged(Theme oldTheme, Theme newTheme)
@@ -1793,7 +1793,7 @@ namespace AvalonDock
 				// Avalonia can sort top levels by their real z-order on most platforms.
 				var span = windows.Cast<Window>().ToArray();
 				Window.SortWindowsByZOrder(span);
-				return span.Reverse().OfType<LayoutFloatingWindowControl>().ToList();
+				return Enumerable.Reverse(span).OfType<LayoutFloatingWindowControl>().ToList();
 			}
 			catch (Exception)
 			{
@@ -2333,7 +2333,7 @@ namespace AvalonDock
 			if (view is LayoutItemView itemView) itemView.Host?.ReleaseView();
 
 			var window = new DetachedAnchorableWindow(anchorable, view, CreateDetachedWindowHeader(anchorable));
-			window.UpdateThemeResources(null, Theme);
+			window.UpdateThemeResources(null, DockTheme);
 			window.Closed += OnDetachedWindowClosed;
 
 			_detachedAnchorables[anchorable] = new DetachedEntry(window, restoreState);

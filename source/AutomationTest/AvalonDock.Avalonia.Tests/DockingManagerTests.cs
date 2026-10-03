@@ -202,5 +202,19 @@ namespace AvalonDock.Avalonia.Tests
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
 		private static System.WeakReference<LayoutDocumentPaneControl> CollectPaneReference(Fixture f)
 			=> new System.WeakReference<LayoutDocumentPaneControl>(f.Manager.GetVisualDescendants().OfType<LayoutDocumentPaneControl>().Single());
+
+		[AvaloniaTest]
+		public void A_Layout_Written_In_Xaml_Is_Shown()
+		{
+			var view = new XamlLayoutView();
+			var window = new Window { Width = 800, Height = 600, Content = view };
+			window.Show();
+			Pump(window);
+			var manager = view.DockingManager;
+			Assert.That(manager.Layout.Descendents().OfType<LayoutDocument>().Single().Title, Is.EqualTo("Document 1"));
+			Assert.That(manager.GetVisualDescendants().OfType<LayoutAnchorablePaneControl>().Single().Bounds.Width, Is.EqualTo(220).Within(1));
+			Assert.That(manager.GetVisualDescendants().OfType<TextBox>().Any(t => t.Text == "Hello" && t.IsEffectivelyVisible), Is.True);
+			Assert.That(ShowsText(manager, "Explorer"), Is.True);
+		}
 	}
 }

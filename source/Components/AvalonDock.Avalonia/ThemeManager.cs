@@ -80,7 +80,7 @@ namespace AvalonDock
 			if (theme == null) return false;
 
 			if (_dockingManager != null)
-				_dockingManager.Theme = theme;
+				_dockingManager.DockTheme = theme;
 
 			_currentThemeName = theme.Name;
 			ThemeChanged?.Invoke(this, EventArgs.Empty);
