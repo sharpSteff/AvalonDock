@@ -112,7 +112,19 @@ button or a title can be dragged onto another zone. See
 
 Dragging is driven by Avalonia's own pointer events rather than by the native window move loop: the
 pointer is captured by the window the drag started in, and the floating window follows it. This behaves
-the same way on every platform, including X11 window managers without compositing.
+the same way on every platform.
+
+## Platforms
+
+| Platform | Drop target overlay |
+|:---------|:--------------------|
+| Windows | Transparent window over the host |
+| macOS | Transparent window over the host |
+| Linux (X11) with a compositing manager - GNOME, KDE, Xfce and most desktops, or XWayland | Transparent window over the host |
+| Linux (X11) without a compositing manager | Drawn into the host window; while the pointer is over a host the dragged window shrinks to a small caption beside the pointer, so it does not hide the drop targets |
+
+Whether transparent windows are available is found out once per process, with `OverlayWindowMode.Auto`
+(the default). `OverlayWindowMode.Window` and `OverlayWindowMode.InWindow` force one of the two.
 
 Screen coordinates in the drag and drop code are device pixels, as returned by
 `Visual.PointToScreen`.
@@ -126,6 +138,14 @@ docking through the drop targets, the auto-hide flyout and the sidebar buttons o
 
 ```bash
 dotnet test source/AvalonDock.Avalonia.sln
+```
+
+`source/AutomationTest/AvalonDock.Avalonia.PlatformTests` runs docking scenarios against the real
+windowing backend of the OS - real windows, real screen coordinates and the real overlay - and saves
+screenshots. CI runs it on Windows, macOS and Linux (with and without a compositing manager):
+
+```bash
+dotnet run --project source/AutomationTest/AvalonDock.Avalonia.PlatformTests -- --screenshots shots
 ```
 
 `source/AvalonDockAvaloniaApp` is a sample application with both managers and a light/dark switch:

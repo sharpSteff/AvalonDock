@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDock.Avalonia.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDockAvaloniaApp", "AvalonDockAvaloniaApp\AvalonDockAvaloniaApp.csproj", "{7A0D772D-EA14-4F56-9058-9BECC53DBA9E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDock.Avalonia.PlatformTests", "AutomationTest\AvalonDock.Avalonia.PlatformTests\AvalonDock.Avalonia.PlatformTests.csproj", "{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,18 @@ Global
 		{7A0D772D-EA14-4F56-9058-9BECC53DBA9E}.Release|x64.Build.0 = Release|Any CPU
 		{7A0D772D-EA14-4F56-9058-9BECC53DBA9E}.Release|x86.ActiveCfg = Release|Any CPU
 		{7A0D772D-EA14-4F56-9058-9BECC53DBA9E}.Release|x86.Build.0 = Release|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Debug|x64.Build.0 = Debug|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Debug|x86.Build.0 = Debug|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Release|x64.ActiveCfg = Release|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Release|x64.Build.0 = Release|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Release|x86.ActiveCfg = Release|Any CPU
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -81,5 +95,6 @@ Global
 		{0424B153-0620-4714-BD71-D9812F4EC3BF} = {F30895DC-C3AC-FF44-FFF8-D51D98AE1B61}
 		{8882EF68-70A7-430C-8800-4B37F2A0E959} = {F30895DC-C3AC-FF44-FFF8-D51D98AE1B61}
 		{3970C9F2-6CB9-4613-9343-57FBB6C3AEAF} = {B712602A-2FD7-D24C-5AC0-D7C9840334D2}
+		{FF107ECF-8D70-4DB7-805E-1ECC55C2FA37} = {B712602A-2FD7-D24C-5AC0-D7C9840334D2}
 	EndGlobalSection
 EndGlobal

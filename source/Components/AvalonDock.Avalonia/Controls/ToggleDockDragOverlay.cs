@@ -103,6 +103,18 @@ namespace AvalonDock.Controls
 			return new ToggleDockDragOverlay(anchorable, null, new Size(24, 24), manager).Begin(dragStart.Pointer, position);
 		}
 
+		/// <summary>Starts a drag that is driven through <see cref="MoveTo"/> and <see cref="DropAt"/> instead of a pointer; used by tests.</summary>
+		/// <param name="anchorable">The anchorable.</param>
+		/// <param name="manager">The manager.</param>
+		/// <param name="position">The start position in manager coordinates.</param>
+		/// <returns>The overlay, or <see langword="null"/> when it could not be shown.</returns>
+		internal static ToggleDockDragOverlay StartProgrammaticDrag(LayoutAnchorable anchorable, ToggleDockingManager manager, Point position)
+		{
+			if (anchorable == null || manager == null) return null;
+			var overlay = new ToggleDockDragOverlay(anchorable, null, new Size(24, 24), manager);
+			return overlay.Begin(null, position) ? overlay : null;
+		}
+
 		/// <summary>Moves the virtual pointer of the drag in progress; used by tests and keyboard moves.</summary>
 		/// <param name="position">The position in manager coordinates.</param>
 		internal void MoveTo(Point position)
