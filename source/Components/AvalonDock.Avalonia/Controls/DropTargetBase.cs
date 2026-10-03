@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Avalonia;
+using Avalonia.VisualTree;
 using Avalonia.Controls;
 
 namespace AvalonDock.Controls
@@ -104,9 +106,34 @@ namespace AvalonDock.Controls
 		DropAreaType Type { get; }
 	}
 
+	/// <summary>Helpers for caches of <see cref="IDropArea"/>s.</summary>
+	internal static class DropAreaCache
+	{
+		/// <summary>Gets a value indicating whether a cached list of areas can still be used.</summary>
+		/// <param name="areas">The cached areas, may be <see langword="null"/>.</param>
+		/// <returns><see langword="true"/> when every area still matches its element.</returns>
+		internal static bool IsValid(List<IDropArea> areas)
+		{
+			if (areas == null) return false;
+			foreach (var area in areas)
+			{
+				if (area is IStaleCheck check && check.IsStale) return false;
+			}
+
+			return true;
+		}
+	}
+
+	/// <summary>Implemented by drop areas that can tell whether they are out of date.</summary>
+	internal interface IStaleCheck
+	{
+		/// <summary>Gets a value indicating whether the area is out of date.</summary>
+		bool IsStale { get; }
+	}
+
 	/// <summary>An area of a host over which drop targets are offered.</summary>
 	/// <typeparam name="T">The type of the element the area belongs to.</typeparam>
-	public class DropArea<T> : IDropArea
+	public class DropArea<T> : IDropArea, IStaleCheck
 		where T : Control
 	{
 		/// <summary>Initializes a new instance of the <see cref="DropArea{T}"/> class.</summary>
@@ -118,6 +145,12 @@ namespace AvalonDock.Controls
 			DetectionRect = areaElement.GetScreenArea();
 			Type = type;
 		}
+
+		/// <summary>
+		/// Gets a value indicating whether the area no longer describes its element: the element left the visual
+		/// tree or moved since the area was created - the layout changed while the drag was in progress.
+		/// </summary>
+		bool IStaleCheck.IsStale => !AreaElement.IsAttachedToVisualTree() || AreaElement.GetScreenArea() != DetectionRect;
 
 		/// <inheritdoc/>
 		public Rect DetectionRect { get; }

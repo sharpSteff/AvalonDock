@@ -108,7 +108,7 @@ namespace AvalonDock.Controls
 		/// <inheritdoc/>
 		IEnumerable<IDropArea> IOverlayWindowHost.GetDropAreas(LayoutFloatingWindowControl draggingWindow)
 		{
-			if (_dropAreas != null) return _dropAreas;
+			if (DropAreaCache.IsValid(_dropAreas)) return _dropAreas;
 			_dropAreas = new List<IDropArea>();
 			if (draggingWindow.Model is LayoutDocumentFloatingWindow) return _dropAreas;
 			if (Content is not Visual rootVisual) return _dropAreas;

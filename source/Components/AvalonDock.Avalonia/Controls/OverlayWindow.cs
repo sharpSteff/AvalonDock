@@ -171,13 +171,24 @@ namespace AvalonDock.Controls
 			EnableDropTargets();
 		}
 
+		/// <summary>
+		/// Whether transparent windows were found to be unsupported (an X11 session without a compositing
+		/// manager). Remembered for the process, so that later drags go straight to the overlay layer.
+		/// </summary>
+		private static bool s_transparentWindowsUnsupported;
+
+		/// <summary>Gets a value indicating whether the overlay is currently drawn in the overlay layer of the host's window.</summary>
+		internal bool IsShownInWindow => _hostLayer != null && IsVisible;
+
 		private bool TryShowInOwnWindow(Visual hostVisual, Window ownerWindow, bool requireTransparency)
 		{
+			if (requireTransparency && s_transparentWindowsUnsupported) return false;
 			var topLevel = TopLevel.GetTopLevel(hostVisual);
 			if (topLevel == null) return false;
 			DetachFromLayer();
 
-			if (_hostWindow == null)
+			var isNewWindow = _hostWindow == null;
+			if (isNewWindow)
 			{
 				_hostWindow = new OverlayHostWindow();
 			}
@@ -186,6 +197,16 @@ namespace AvalonDock.Controls
 			{
 				if (Parent is ContentControl oldParent) oldParent.Content = null;
 				_hostWindow.Content = this;
+			}
+
+			if (requireTransparency && isNewWindow && !ProbeTransparency(ownerWindow))
+			{
+				// An opaque overlay would hide the whole host; draw into the host's window instead.
+				s_transparentWindowsUnsupported = true;
+				_hostWindow.Content = null;
+				_hostWindow.Close();
+				_hostWindow = null;
+				return false;
 			}
 
 			var scaling = topLevel.RenderScaling;
@@ -199,16 +220,23 @@ namespace AvalonDock.Controls
 				else _hostWindow.Show();
 			}
 
-			if (requireTransparency && _hostWindow.ActualTransparencyLevel == WindowTransparencyLevel.None)
-			{
-				// An opaque overlay would hide the whole host; draw into the host's window instead.
-				_hostWindow.Hide();
-				_hostWindow.Content = null;
-				return false;
-			}
-
 			UpdateLayout();
 			return true;
+		}
+
+		/// <summary>
+		/// Finds out whether the platform composites transparent windows. The transparency level is only known
+		/// once the window is shown, so it is shown tiny and far off screen first: a probe at the overlay's real
+		/// place would flash an opaque window over the host where transparency is not available.
+		/// </summary>
+		private bool ProbeTransparency(Window ownerWindow)
+		{
+			_hostWindow.Width = 1;
+			_hostWindow.Height = 1;
+			_hostWindow.Position = new PixelPoint(-32000, -32000);
+			if (ownerWindow != null && ownerWindow.IsVisible) _hostWindow.Show(ownerWindow);
+			else _hostWindow.Show();
+			return _hostWindow.ActualTransparencyLevel != WindowTransparencyLevel.None;
 		}
 
 		private void ShowInOverlayLayer(Visual hostVisual)
@@ -234,7 +262,25 @@ namespace AvalonDock.Controls
 			Width = localArea.Width;
 			Height = localArea.Height;
 			IsVisible = true;
-			UpdateLayout();
+			LayoutOverlay();
+		}
+
+		/// <summary>
+		/// Brings the positions of the drop targets up to date right away. In the overlay layer only the overlay
+		/// itself is laid out: a layout pass of the whole host window could run while the layout model is in the
+		/// middle of a change, which is exactly when drags start.
+		/// </summary>
+		private void LayoutOverlay()
+		{
+			if (_hostLayer == null)
+			{
+				UpdateLayout();
+				return;
+			}
+
+			var size = new Size(Width, Height);
+			Measure(size);
+			Arrange(new Rect(new Point(Canvas.GetLeft(this), Canvas.GetTop(this)), size));
 		}
 
 		private void DetachFromLayer()
@@ -562,7 +608,7 @@ namespace AvalonDock.Controls
 
 			// The drag service looks for the targets of this area right away, so their screen positions must
 			// be up to date now rather than after the next layout pass.
-			UpdateLayout();
+			LayoutOverlay();
 		}
 
 		private Control PrepareDocumentPaneTargets(IDropArea area, DockingManager floatingWindowManager)

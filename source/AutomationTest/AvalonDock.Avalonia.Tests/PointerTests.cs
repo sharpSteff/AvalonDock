@@ -1,5 +1,6 @@
 using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
@@ -124,6 +125,46 @@ namespace AvalonDock.Avalonia.Tests
 			DockingManagerTests.Pump(f.Window);
 			Assert.That(f.AnchorablePane.Children.IndexOf(f.Tool2), Is.EqualTo(0));
 			Assert.That(f.Manager.FloatingWindows, Is.Empty);
+		}
+
+		[AvaloniaTest]
+		public void Tearing_Out_The_Last_Document_Of_A_Pane_Collapses_The_Group_Without_Errors()
+		{
+			// The sequence that crashed on X11: a document docked to the left of the other through the drop
+			// targets, then the other one torn out - which empties its pane and collapses the group while the
+			// drag is starting.
+			var f = DockingManagerTests.Create();
+			var tab2 = f.Manager.GetVisualDescendants().OfType<LayoutDocumentTabItem>().Single(t => t.Model == f.Doc2);
+			var p = CenterIn(tab2, f.Window);
+			f.Window.MouseDown(p, MouseButton.Left);
+			f.Window.MouseMove(p + new Point(5, 40), RawInputModifiers.LeftMouseButton);
+			f.Window.MouseMove(p + new Point(50, 250), RawInputModifiers.LeftMouseButton);
+			DockingManagerTests.Pump(f.Window);
+			var fw = f.Manager.FloatingWindows.Single();
+			var left = fw.CurrentDragService.CurrentOverlayWindow is OverlayWindow overlay
+				? overlay.GetVisualDescendants().OfType<Control>().Single(c => c.Name == "PART_DocumentPaneDropTargetLeft")
+				: null;
+			Assert.That(left?.IsEffectivelyVisible, Is.True, "the document pane drop targets are shown");
+			var target = f.Window.PointToClient(new PixelPoint((int)left.GetScreenArea().Center.X, (int)left.GetScreenArea().Center.Y));
+			f.Window.MouseMove(target, RawInputModifiers.LeftMouseButton);
+			f.Window.MouseUp(target, MouseButton.Left);
+			DockingManagerTests.Pump(f.Window);
+			Assert.That(f.Doc2.IsFloating, Is.False, "docked to the left");
+			Assert.That(f.Manager.GetVisualDescendants().OfType<LayoutDocumentPaneControl>().Count(c => c.IsEffectivelyVisible), Is.EqualTo(2));
+
+			var tab1 = f.Manager.GetVisualDescendants().OfType<LayoutDocumentTabItem>().Single(t => t.Model == f.Doc1);
+			p = CenterIn(tab1, f.Window);
+			f.Window.MouseDown(p, MouseButton.Left);
+			f.Window.MouseMove(p + new Point(5, 40), RawInputModifiers.LeftMouseButton);
+			f.Window.MouseMove(p + new Point(100, 250), RawInputModifiers.LeftMouseButton);
+			DockingManagerTests.Pump(f.Window);
+			f.Window.MouseMove(p + new Point(110, 260), RawInputModifiers.LeftMouseButton);
+			DockingManagerTests.Pump(f.Window);
+			f.Window.MouseUp(p + new Point(110, 260), MouseButton.Left);
+			DockingManagerTests.Pump(f.Window);
+
+			Assert.That(f.Doc1.IsFloating || f.Doc1.Parent != null, Is.True);
+			Assert.That(f.Manager.GetVisualDescendants().OfType<LayoutDocumentPaneControl>().Count(c => c.IsEffectivelyVisible), Is.GreaterThanOrEqualTo(1));
 		}
 	}
 }
