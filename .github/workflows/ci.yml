@@ -205,3 +205,36 @@ jobs:
             /tmp/avalondock-devflow-testapp-*.log
           retention-days: 14
           if-no-files-found: warn
+
+  avalonia:
+    name: AvalonDock.Avalonia Build & Headless Tests (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # The library targets net8.0 and net10.0; the tests and the sample run on net10.0.
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore source/AvalonDock.Avalonia.sln
+
+      - name: Build
+        run: dotnet build source/AvalonDock.Avalonia.sln --configuration Release --no-restore
+
+      # Avalonia.Headless renders with Skia off screen, so no X server is needed.
+      - name: Test
+        run: dotnet test source/AvalonDock.Avalonia.sln --configuration Release --no-build --logger "trx;LogFileName=avalonia.trx" --results-directory TestResults/avalonia
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: avalonia-test-results
+          path: TestResults/avalonia

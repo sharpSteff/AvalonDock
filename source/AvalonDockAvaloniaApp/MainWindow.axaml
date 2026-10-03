@@ -1,0 +1,23 @@
+<Window
+	x:Class="AvalonDockAvaloniaApp.MainWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="AvalonDock for Avalonia"
+	Width="1200"
+	Height="800">
+	<DockPanel>
+		<Menu DockPanel.Dock="Top">
+			<MenuItem Header="_Layout">
+				<MenuItem Click="OnClassicClick" Header="_Classic DockingManager" />
+				<MenuItem Click="OnToggleClick" Header="_ToggleDockingManager" />
+				<Separator />
+				<MenuItem Click="OnNewDocumentClick" Header="_New document" />
+			</MenuItem>
+			<MenuItem Header="_Theme">
+				<MenuItem Click="OnLightClick" Header="_Light" />
+				<MenuItem Click="OnDarkClick" Header="_Dark" />
+			</MenuItem>
+		</Menu>
+		<ContentControl Name="Host" />
+	</DockPanel>
+</Window>

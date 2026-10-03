@@ -270,7 +270,7 @@ namespace AvalonDock.Controls
 			}
 
 			var manager = _model.Root?.Manager;
-			var theme = manager?.Theme;
+			var theme = manager?.DockTheme;
 			if (theme == null) return;
 			_appliedThemeStyles = theme.CreateStyles();
 			if (_appliedThemeStyles != null) Styles.Add(_appliedThemeStyles);

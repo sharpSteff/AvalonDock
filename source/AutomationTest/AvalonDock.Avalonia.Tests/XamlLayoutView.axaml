@@ -1,0 +1,25 @@
+<UserControl
+	x:Class="AvalonDock.Avalonia.Tests.XamlLayoutView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ad="https://github.com/Dirkster99/AvalonDock">
+	<!--  The layout of the Avalonia guide in docs/guides/avalonia.md, kept compiling here.  -->
+	<ad:DockingManager x:Name="Manager">
+		<ad:LayoutRoot>
+			<ad:LayoutPanel Orientation="Horizontal">
+				<ad:LayoutAnchorablePane DockWidth="220">
+					<ad:LayoutAnchorable Title="Explorer" ContentId="explorer">
+						<TextBlock Text="Explorer" />
+					</ad:LayoutAnchorable>
+				</ad:LayoutAnchorablePane>
+				<ad:LayoutDocumentPaneGroup>
+					<ad:LayoutDocumentPane>
+						<ad:LayoutDocument Title="Document 1" ContentId="doc1">
+							<TextBox AcceptsReturn="True" Text="Hello" />
+						</ad:LayoutDocument>
+					</ad:LayoutDocumentPane>
+				</ad:LayoutDocumentPaneGroup>
+			</ad:LayoutPanel>
+		</ad:LayoutRoot>
+	</ad:DockingManager>
+</UserControl>
