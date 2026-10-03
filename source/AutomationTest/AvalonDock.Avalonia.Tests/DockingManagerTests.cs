@@ -177,5 +177,30 @@ namespace AvalonDock.Avalonia.Tests
 			Dispatcher.UIThread.RunJobs();
 			Assert.That(f.Manager.Layout.FloatingWindows, Is.Empty);
 		}
+
+		[AvaloniaTest]
+		public void Replacing_The_Layout_Releases_The_Controls_Of_The_Old_Layout()
+		{
+			var f = Create();
+			var oldPane = CollectPaneReference(f);
+			f.Doc1 = f.Doc2 = null;
+			f.Tool1 = f.Tool2 = null;
+			f.DocumentPane = null;
+			f.AnchorablePane = null;
+			f.Manager.Layout = new LayoutRoot();
+			Pump(f.Window);
+			for (var i = 0; i < 3; i++)
+			{
+				System.GC.Collect();
+				System.GC.WaitForPendingFinalizers();
+				Dispatcher.UIThread.RunJobs();
+			}
+
+			Assert.That(oldPane.TryGetTarget(out _), Is.False, "the manager must not keep pane controls of a discarded layout alive");
+		}
+
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+		private static System.WeakReference<LayoutDocumentPaneControl> CollectPaneReference(Fixture f)
+			=> new System.WeakReference<LayoutDocumentPaneControl>(f.Manager.GetVisualDescendants().OfType<LayoutDocumentPaneControl>().Single());
 	}
 }

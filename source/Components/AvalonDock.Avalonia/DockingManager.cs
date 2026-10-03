@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using Avalonia;
+using Avalonia.LogicalTree;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
@@ -1362,14 +1363,12 @@ namespace AvalonDock
 		/// <param name="templateProperty">The template property of the manager.</param>
 		internal void ApplyTemplateProperty(TemplatedControl control, StyledProperty<IControlTemplate> templateProperty)
 		{
-			void Apply()
+			ObserveWhileInTree(control, templateProperty, () =>
 			{
 				var template = GetValue(templateProperty);
 				if (template != null) control.Template = template;
 				else control.ClearValue(TemplatedControl.TemplateProperty);
-			}
-
-			this.GetObservable(templateProperty).Subscribe(new ActionObserver<IControlTemplate>(_ => Apply()));
+			});
 		}
 
 		/// <summary>Applies a control theme property of the manager to <paramref name="control"/> when it is set.</summary>
@@ -1377,14 +1376,37 @@ namespace AvalonDock
 		/// <param name="themeProperty">The theme property of the manager.</param>
 		internal void ApplyControlThemeProperty(StyledElement control, StyledProperty<ControlTheme> themeProperty)
 		{
-			void Apply()
+			ObserveWhileInTree(control, themeProperty, () =>
 			{
 				var theme = GetValue(themeProperty);
 				if (theme != null) control.Theme = theme;
 				else control.ClearValue(StyledElement.ThemeProperty);
+			});
+		}
+
+		/// <summary>
+		/// Runs <paramref name="apply"/> now and whenever <paramref name="property"/> of the manager changes while
+		/// <paramref name="control"/> is part of a logical tree. The subscription ends when the control leaves the
+		/// tree, so the manager never keeps controls of a discarded layout alive.
+		/// </summary>
+		private void ObserveWhileInTree<T>(StyledElement control, StyledProperty<T> property, Action apply)
+		{
+			IDisposable subscription = null;
+			void Subscribe()
+			{
+				subscription?.Dispose();
+				subscription = this.GetObservable(property).Subscribe(new ActionObserver<T>(_ => apply()));
 			}
 
-			this.GetObservable(themeProperty).Subscribe(new ActionObserver<ControlTheme>(_ => Apply()));
+			control.AttachedToLogicalTree += (_, _) => Subscribe();
+			control.DetachedFromLogicalTree += (_, _) =>
+			{
+				subscription?.Dispose();
+				subscription = null;
+			};
+
+			apply();
+			if (((ILogical)control).IsAttachedToLogicalTree) Subscribe();
 		}
 
 		/// <summary>
