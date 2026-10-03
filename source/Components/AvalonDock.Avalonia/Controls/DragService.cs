@@ -94,6 +94,7 @@ namespace AvalonDock.Controls
 						}
 
 						_currentHost = null;
+						_floatingWindow.SetCompactDrag(false);
 					}
 
 					if (_currentHost != newHost && newHost != null)
@@ -108,6 +109,9 @@ namespace AvalonDock.Controls
 
 						_currentWindow.DragEnter(_floatingWindow);
 						GetOverlayWindowHosts();
+
+						// Drop targets drawn into a window would be hidden by the dragged window; shrink it meanwhile.
+						_floatingWindow.SetCompactDrag(_currentWindow is OverlayWindow overlay && overlay.IsShownInWindow);
 					}
 				}
 
@@ -120,11 +124,13 @@ namespace AvalonDock.Controls
 					_currentDropTarget = null;
 				}
 
+				// The host rebuilds its areas when the layout changed during the drag; areas it no longer has are left.
+				var hostAreas = _currentHost.GetDropAreas(_floatingWindow).ToList();
 				var areasToRemove = new List<IDropArea>();
 				_currentWindowAreas.ForEach(a =>
 				{
 					// is mouse still inside this area?
-					if (!a.DetectionRect.Contains(dragPosition))
+					if (!a.DetectionRect.Contains(dragPosition) || !hostAreas.Contains(a))
 					{
 						_currentWindow.DragLeave(a);
 						areasToRemove.Add(a);
@@ -133,7 +139,7 @@ namespace AvalonDock.Controls
 
 				areasToRemove.ForEach(a => _currentWindowAreas.Remove(a));
 
-				var areasToAdd = _currentHost.GetDropAreas(_floatingWindow)
+				var areasToAdd = hostAreas
 					.Where(cw => !_currentWindowAreas.Contains(cw) && cw.DetectionRect.Contains(dragPosition))
 					.ToList();
 

@@ -40,6 +40,14 @@ namespace AvalonDock.Controls
 		/// <summary>Step of a keyboard move, in device independent pixels.</summary>
 		private const double KeyboardMoveStep = 10.0;
 
+		/// <summary>The size of the window and its distance from the pointer in <see cref="SetCompactDrag"/> mode.</summary>
+		private const double CompactDragWidth = 200.0;
+		private const double CompactDragHeight = 28.0;
+		private const double CompactDragGap = 16.0;
+
+		private Size? _sizeBeforeCompactDrag;
+		private Vector _grabOffsetBeforeCompactDrag;
+
 		private readonly ILayoutElement _model;
 		private bool _internalCloseFlag = false;
 		private bool _isClosing = false;
@@ -317,10 +325,50 @@ namespace AvalonDock.Controls
 		{
 			if (_dragService == null) return;
 			_lastDragScreenPoint = screenPoint;
-			Position = new PixelPoint(
-				(int)Math.Round(screenPoint.X - _dragGrabOffset.X),
-				(int)Math.Round(screenPoint.Y - _dragGrabOffset.Y));
+			MoveToDragPoint();
 			_dragService.UpdateMouseLocation(screenPoint);
+		}
+
+		/// <summary>Gets a value indicating whether the window is shrunk to a ghost beside the pointer, see <see cref="SetCompactDrag"/>.</summary>
+		internal bool IsCompactDrag => _sizeBeforeCompactDrag.HasValue;
+
+		/// <summary>
+		/// Shrinks the dragged window to its caption and moves it beside the pointer, or restores it. Used while
+		/// the drop targets are drawn into the window under the pointer (no compositing window manager, so no
+		/// transparent overlay window): a full size window following the pointer would hide them.
+		/// </summary>
+		/// <param name="compact">Whether to shrink the window.</param>
+		internal void SetCompactDrag(bool compact)
+		{
+			if (compact == IsCompactDrag) return;
+			var scaling = GetDesktopScaling();
+			if (compact)
+			{
+				_sizeBeforeCompactDrag = new Size(Width, Height);
+				_grabOffsetBeforeCompactDrag = _dragGrabOffset;
+				Width = Math.Min(Width, CompactDragWidth);
+				Height = Math.Min(Height, CompactDragHeight);
+
+				// Below and to the right of the pointer, so the indicator under the pointer stays visible.
+				_dragGrabOffset = new Vector(-CompactDragGap * scaling, -CompactDragGap * scaling);
+			}
+			else
+			{
+				var size = _sizeBeforeCompactDrag.Value;
+				_sizeBeforeCompactDrag = null;
+				Width = size.Width;
+				Height = size.Height;
+				_dragGrabOffset = _grabOffsetBeforeCompactDrag;
+			}
+
+			MoveToDragPoint();
+		}
+
+		private void MoveToDragPoint()
+		{
+			Position = new PixelPoint(
+				(int)Math.Round(_lastDragScreenPoint.X - _dragGrabOffset.X),
+				(int)Math.Round(_lastDragScreenPoint.Y - _dragGrabOffset.Y));
 		}
 
 		/// <summary>Ends a drag that is in progress.</summary>
@@ -332,6 +380,7 @@ namespace AvalonDock.Controls
 			if (dragService == null) return false;
 			_dragService = null;
 			DetachDragHandlers();
+			SetCompactDrag(false);
 
 			var dropHandled = false;
 			if (drop)

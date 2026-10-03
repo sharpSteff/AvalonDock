@@ -46,6 +46,8 @@ namespace AvalonDock.Controls
 		/// <summary>Gets the orientation of the model.</summary>
 		public Orientation Orientation => (_model as ILayoutOrientableGroup).Orientation;
 
+		private bool _isUpdatingChildren;
+
 		private bool AsyncRefreshCalled => _asyncRefreshCalled != null;
 
 		private void OnModelChildrenTreeChanged(object sender, ChildrenTreeChangedEventArgs args)
@@ -104,6 +106,19 @@ namespace AvalonDock.Controls
 
 		/// <summary>Rebuilds the child controls from the model.</summary>
 		internal void UpdateChildren()
+		{
+			_isUpdatingChildren = true;
+			try
+			{
+				UpdateChildrenCore();
+			}
+			finally
+			{
+				_isUpdatingChildren = false;
+			}
+		}
+
+		private void UpdateChildrenCore()
 		{
 			var alreadyContainedChildren = Children.OfType<ILayoutControl>().ToArray();
 			DetachOldSplitters();
@@ -168,6 +183,16 @@ namespace AvalonDock.Controls
 			var root = _model.Root;
 			var manager = root?.Manager;
 			if (manager == null) return;
+
+			// The child controls are refreshed asynchronously after the model's children change. Definitions
+			// built in between would not match the controls, and the grid cannot measure children whose row or
+			// column is out of range - so catch up with the model first.
+			if (!_isUpdatingChildren && !ChildControlsMatchModel())
+			{
+				UpdateChildren();
+				return;
+			}
+
 			FixChildrenDockLengths();
 			RowDefinitions.Clear();
 			ColumnDefinitions.Clear();
@@ -246,6 +271,18 @@ namespace AvalonDock.Controls
 			// so hide them outright.
 			for (var i = 0; i < Children.Count; i++)
 				Children[i].IsVisible = IsChildVisible(i);
+		}
+
+		private bool ChildControlsMatchModel()
+		{
+			var controls = Children.OfType<ILayoutControl>().ToList();
+			if (controls.Count != _model.Children.Count) return false;
+			for (var i = 0; i < controls.Count; i++)
+			{
+				if (!ReferenceEquals(controls[i].Model, _model.Children[i])) return false;
+			}
+
+			return true;
 		}
 
 		private void CreateSplitters()

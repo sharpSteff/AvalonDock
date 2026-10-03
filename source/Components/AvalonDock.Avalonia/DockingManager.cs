@@ -2020,7 +2020,7 @@ namespace AvalonDock
 		/// <inheritdoc/>
 		IEnumerable<IDropArea> IOverlayWindowHost.GetDropAreas(LayoutFloatingWindowControl draggingWindow)
 		{
-			if (_areas != null) return _areas;
+			if (DropAreaCache.IsValid(_areas)) return _areas;
 			_areas = new List<IDropArea>();
 			var isDraggingDocuments = draggingWindow.Model is LayoutDocumentFloatingWindow;
 			if (!isDraggingDocuments)
