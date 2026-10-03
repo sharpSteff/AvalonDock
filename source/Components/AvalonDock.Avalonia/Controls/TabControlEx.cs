@@ -54,15 +54,16 @@ namespace AvalonDock.Controls
 		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 		{
 			base.OnPropertyChanged(change);
-			if (change.Property == SelectedIndexProperty && !_isSyncingSelection && _selector != null)
+			if (change.Property == SelectedIndexProperty && _selector != null)
 			{
 				var index = SelectedIndex;
-				if (index >= 0 && index != _selector.SelectedContentIndex)
+				if (!_isSyncingSelection && index >= 0 && index != _selector.SelectedContentIndex)
 				{
 					using (BeginSync())
 						_selector.SelectedContentIndex = index;
 				}
 
+				// Like the WPF control, a selection made through the model activates the content as well.
 				OnSelectedContentChanged();
 			}
 		}
@@ -87,6 +88,11 @@ namespace AvalonDock.Controls
 		{
 			// The tab control adjusts its own selection while it processes the change, possibly before the
 			// model has picked the content it wants selected. Take the model's choice once both are done.
+			PostResync();
+		}
+
+		private void PostResync()
+		{
 			if (_resyncPosted) return;
 			_resyncPosted = true;
 			Dispatcher.UIThread.Post(
@@ -101,6 +107,14 @@ namespace AvalonDock.Controls
 		private void SyncSelectionFromModel()
 		{
 			if (_selector == null || _isSyncingSelection) return;
+			// While the model's children change, the model can report a selection the items of this control do
+			// not reflect yet; synchronise once the change has been processed.
+			if (_selector is ILayoutContainer container && container.ChildrenCount != ItemCount)
+			{
+				PostResync();
+				return;
+			}
+
 			var index = _selector.SelectedContentIndex;
 			if (index >= ItemCount) return;
 			if (SelectedIndex == index) return;

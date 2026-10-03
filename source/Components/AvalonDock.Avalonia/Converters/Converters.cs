@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Avalonia.Controls.Templates;
 using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using AvalonDock.Controls;
@@ -9,15 +10,40 @@ using AvalonDock.Layout;
 
 namespace AvalonDock.Converters
 {
-	/// <summary>Returns the first value that is not <see langword="null"/>; used to combine a template with its selector.</summary>
-	public sealed class FirstNonNullConverter : IMultiValueConverter
+	/// <summary>
+	/// Combines a data template with a <see cref="DataTemplateSelector"/>: the selector is asked first and the
+	/// template is used when the selector has nothing for an item. Values: [template, selector].
+	/// </summary>
+	public sealed class TemplateOrSelectorConverter : IMultiValueConverter
 	{
 		/// <summary>Gets the shared instance.</summary>
-		public static FirstNonNullConverter Instance { get; } = new FirstNonNullConverter();
+		public static TemplateOrSelectorConverter Instance { get; } = new TemplateOrSelectorConverter();
 
 		/// <inheritdoc/>
 		public object Convert(IList<object> values, Type targetType, object parameter, CultureInfo culture)
-			=> values?.FirstOrDefault(v => v != null && !(v is Avalonia.UnsetValueType) && !(v is Avalonia.Data.BindingNotification));
+		{
+			var template = values?.Count > 0 ? values[0] as IDataTemplate : null;
+			var selector = values?.Count > 1 ? values[1] as DataTemplateSelector : null;
+			if (selector == null) return template;
+			return new SelectorWithFallback(selector, template);
+		}
+
+		private sealed class SelectorWithFallback : IDataTemplate
+		{
+			private readonly DataTemplateSelector _selector;
+			private readonly IDataTemplate _fallback;
+
+			public SelectorWithFallback(DataTemplateSelector selector, IDataTemplate fallback)
+			{
+				_selector = selector;
+				_fallback = fallback;
+			}
+
+			public Avalonia.Controls.Control Build(object param)
+				=> (_selector.SelectTemplate(param, null) ?? _fallback)?.Build(param);
+
+			public bool Match(object data) => _selector.SelectTemplate(data, null) != null || _fallback?.Match(data) == true;
+		}
 	}
 
 	/// <summary>Converts a number to <see langword="true"/> when it is greater than the parameter (1 by default).</summary>

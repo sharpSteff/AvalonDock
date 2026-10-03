@@ -106,7 +106,21 @@ namespace AvalonDock.Controls
 			var childrenList = Model.Parent.Children.ToList();
 			var oldIndex = childrenList.IndexOf(Model);
 			var newIndex = childrenList.IndexOf(targetTab.Model);
-			if (oldIndex > -1 && newIndex > -1 && newIndex < containerPane.ChildrenCount) containerPane.MoveChild(oldIndex, newIndex);
+			if (oldIndex < 0 || newIndex < 0 || newIndex >= containerPane.ChildrenCount) return;
+
+			var model = Model;
+			containerPane.MoveChild(oldIndex, newIndex);
+			panel.UpdateLayout();
+
+			// Moving the item makes the tab control create a new container for it, so the tab item that now
+			// shows the model takes over the drag.
+			var newTabItem = panel.FindVisualChildren<LayoutAnchorableTabItem>().FirstOrDefault(t => t != this && t.Model == model);
+			if (newTabItem == null) return;
+			_isMouseDown = false;
+			_isDragging = false;
+			newTabItem._isMouseDown = true;
+			newTabItem._isDragging = true;
+			e.Pointer.Capture(newTabItem);
 		}
 
 		/// <inheritdoc/>

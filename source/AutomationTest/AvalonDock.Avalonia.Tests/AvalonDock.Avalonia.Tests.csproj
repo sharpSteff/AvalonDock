@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>AvalonDock.Avalonia.Tests</RootNamespace>
+		<AssemblyName>AvalonDock.Avalonia.Tests</AssemblyName>
+		<IsPackable>false</IsPackable>
+		<LangVersion>latest</LangVersion>
+		<Nullable>disable</Nullable>
+		<AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>..\..\Components\AvalonDock\sn.snk</AssemblyOriginatorKeyFile>
+		<NoWarn>$(NoWarn);NUnit2005</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+		<PackageReference Include="NUnit" Version="4.6.1" />
+		<PackageReference Include="NUnit3TestAdapter" Version="6.3.0" />
+		<PackageReference Include="Avalonia.Headless.NUnit" Version="12.1.3" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+		<PackageReference Include="Avalonia.Skia" Version="12.1.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Components\AvalonDock.Avalonia\AvalonDock.Avalonia.csproj" />
+	</ItemGroup>
+
+</Project>

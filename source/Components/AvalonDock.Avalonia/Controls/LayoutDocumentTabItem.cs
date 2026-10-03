@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
+using Avalonia.VisualTree;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -130,12 +131,37 @@ namespace AvalonDock.Controls
 				if (containerPane?.Parent is LayoutDocumentPaneGroup layoutDocumentPaneGroup && !layoutDocumentPaneGroup.CanRepositionItems) return;
 				if (targetModel == null || targetModel == Model) return;
 
+				var model = Model;
+				var pointer = e.Pointer;
+				var tabPanel = _parentDocumentTabPanel;
 				var childrenList = container.Children.ToList();
-				containerPane?.MoveChild(childrenList.IndexOf(Model), childrenList.IndexOf(targetModel));
-				Model.IsActive = true;
-				_parentDocumentTabPanel.UpdateLayout();
-				UpdateDragDetails();
+				containerPane?.MoveChild(childrenList.IndexOf(model), childrenList.IndexOf(targetModel));
+				model.IsActive = true;
+				tabPanel.UpdateLayout();
+
+				// Moving the item makes the tab control create a new container for it, so the tab item that now
+				// shows the model takes over the drag.
+				var newTabItem = model.TabItem;
+				if (newTabItem != null && !ReferenceEquals(newTabItem, this) && newTabItem.IsAttachedToVisualTree())
+				{
+					_allowDrag = false;
+					newTabItem.ContinueReorderDrag(pointer);
+				}
+				else
+				{
+					UpdateDragDetails();
+				}
 			}
+		}
+
+		/// <summary>Takes over a reorder drag from the tab item that showed the model before it was moved.</summary>
+		/// <param name="pointer">The dragging pointer.</param>
+		private void ContinueReorderDrag(IPointer pointer)
+		{
+			UpdateDragDetails();
+			_isMouseDown = false;
+			_allowDrag = _parentDocumentTabPanel != null;
+			if (_allowDrag) pointer.Capture(this);
 		}
 
 		/// <inheritdoc/>

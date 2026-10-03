@@ -296,6 +296,21 @@ namespace AvalonDock.Controls
 			e.Handled = true;
 		}
 
+		/// <summary>
+		/// Starts a drag that is driven through <see cref="DragTo"/> and <see cref="EndDrag"/> instead of pointer
+		/// events, for example by keyboard moves or by tests.
+		/// </summary>
+		/// <param name="screenPoint">The start position of the virtual pointer in screen pixels.</param>
+		internal void BeginProgrammaticDrag(Point screenPoint)
+		{
+			if (_dragService != null) EndDrag(false);
+			if (Model?.Root?.Manager == null) return;
+			_dragGrabOffset = new Vector(screenPoint.X - Position.X, screenPoint.Y - Position.Y);
+			_dragService = new DragService(this);
+			IsDragging = true;
+			DragTo(screenPoint);
+		}
+
 		/// <summary>Moves a drag that is in progress to <paramref name="screenPoint"/>, as if the pointer had moved there.</summary>
 		/// <param name="screenPoint">The pointer position in screen pixels.</param>
 		internal void DragTo(Point screenPoint)

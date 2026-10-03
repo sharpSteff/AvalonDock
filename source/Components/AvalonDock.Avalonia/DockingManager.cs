@@ -1140,6 +1140,7 @@ namespace AvalonDock
 		{
 			base.OnAttachedToVisualTree(e);
 			EnsureDefaultTheme();
+			EnsureDefaultContextMenus();
 			OnManagerLoaded();
 		}
 
@@ -1148,6 +1149,18 @@ namespace AvalonDock
 		{
 			OnManagerUnloaded();
 			base.OnDetachedFromVisualTree(e);
+		}
+
+		/// <summary>
+		/// Picks up the context menus of the theme (resources <c>AvalonDock_DocumentContextMenu</c> and
+		/// <c>AvalonDock_AnchorableContextMenu</c>) for the menu properties the application left unset.
+		/// </summary>
+		private void EnsureDefaultContextMenus()
+		{
+			if (DocumentContextMenu == null && this.TryFindResource("AvalonDock_DocumentContextMenu", out var documentMenu) && documentMenu is ContextMenu dm)
+				SetCurrentValue(DocumentContextMenuProperty, dm);
+			if (AnchorableContextMenu == null && this.TryFindResource("AvalonDock_AnchorableContextMenu", out var anchorableMenu) && anchorableMenu is ContextMenu am)
+				SetCurrentValue(AnchorableContextMenuProperty, am);
 		}
 
 		/// <summary>

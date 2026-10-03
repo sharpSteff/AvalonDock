@@ -26,6 +26,9 @@ namespace AvalonDock.Controls
 			_model = model;
 			HideWindowCommand = new RelayCommand<object>(OnExecuteHideWindowCommand, CanExecuteHideWindowCommand);
 			CloseWindowCommand = new RelayCommand<object>(OnExecuteCloseWindowCommand, CanExecuteCloseWindowCommand);
+			CaptionCloseCommand = new RelayCommand<object>(
+				p => (SingleContent?.CanClose == true ? CloseWindowCommand : HideWindowCommand).Execute(p),
+				p => (SingleContent?.CanClose == true ? CloseWindowCommand : HideWindowCommand).CanExecute(p));
 			UpdateMinSize();
 
 			// The window reaches the screen through a deferred operation, so its model can have left the
@@ -56,7 +59,7 @@ namespace AvalonDock.Controls
 		public ICommand CloseWindowCommand { get; }
 
 		/// <summary>Gets the command that the close button of the caption executes: close when the content can be closed, hide otherwise.</summary>
-		public ICommand CaptionCloseCommand => SingleContent?.CanClose == true ? CloseWindowCommand : HideWindowCommand;
+		public ICommand CaptionCloseCommand { get; }
 
 		/// <inheritdoc/>
 		DockingManager IOverlayWindowHost.Manager => _model.Root?.Manager;
