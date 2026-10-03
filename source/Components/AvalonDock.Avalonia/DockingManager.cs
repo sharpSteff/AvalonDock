@@ -1181,7 +1181,10 @@ namespace AvalonDock
 			if (_isLoaded) return;
 			_isLoaded = true;
 
-			ILayoutElementForFloatingWindowExtension.ScreenWorkingAreas ??= GetScreenWorkingAreas;
+			// The screens are queried through the most recently attached manager that is still alive, so the
+			// provider keeps working when the manager that set it up is gone.
+			s_screenSource = new WeakReference<DockingManager>(this);
+			ILayoutElementForFloatingWindowExtension.ScreenWorkingAreas ??= GetScreenWorkingAreasOfLastManager;
 
 			if (Layout?.Manager == this)
 				CreateRootControls();
@@ -1253,6 +1256,11 @@ namespace AvalonDock
 			if (fwc is LayoutAnchorableFloatingWindowControl anchorableWindow) anchorableWindow.DisableBindings();
 			else if (fwc is LayoutDocumentFloatingWindowControl documentWindow) documentWindow.DisableBindings();
 		}
+
+		private static WeakReference<DockingManager> s_screenSource;
+
+		private static IReadOnlyList<PixelRect> GetScreenWorkingAreasOfLastManager()
+			=> s_screenSource != null && s_screenSource.TryGetTarget(out var manager) ? manager.GetScreenWorkingAreas() : Array.Empty<PixelRect>();
 
 		private IReadOnlyList<PixelRect> GetScreenWorkingAreas()
 		{
