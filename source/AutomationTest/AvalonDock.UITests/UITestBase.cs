@@ -41,6 +41,10 @@ public abstract class UITestBase
 	{
 		Session = await DemoAppSession.StartAsync(_app, DemoAppSession.SelectedFramework);
 		await WaitUntilAsync(async () => (await GetLayoutAsync()).ManagerLoaded, "the DockingManager to load", TimeSpan.FromSeconds(30));
+
+		// Every demo started at the same place, whose whole window is on screen.
+		await InvokeAsync("avalondock-move-main-window", "8", "8");
+		await SettleAsync();
 	}
 
 	[OneTimeTearDown]

@@ -185,6 +185,30 @@ namespace AvalonDock.UITests.Agent
 			return true;
 		}
 
+		/// <summary>
+		/// Moves the main window to the given offset, in device independent pixels, from the top left corner of
+		/// the working area of its screen. A new window is placed further down than the one before it, and the
+		/// tests start many: on a small screen the bottom of a later one ends up under the taskbar.
+		/// </summary>
+		[DevFlowAction("avalondock-move-main-window", Description = "Moves the main window to the given offset from the top left corner of its screen's working area.")]
+		public static bool MoveMainWindow(double x, double y)
+		{
+			var window = GetMainWindow();
+			if (window == null)
+				return false;
+
+#if AVALONIA
+			var area = window.Screens.ScreenFromWindow(window)?.WorkingArea ?? default;
+			var scaling = window.RenderScaling;
+			window.Position = new PixelPoint(area.X + (int)Math.Round(x * scaling), area.Y + (int)Math.Round(y * scaling));
+#else
+			var area = SystemParameters.WorkArea;
+			window.Left = area.Left + x;
+			window.Top = area.Top + y;
+#endif
+			return true;
+		}
+
 		private static IEnumerable<Window> GetApplicationWindows()
 		{
 #if AVALONIA
