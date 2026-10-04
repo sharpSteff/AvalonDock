@@ -14,11 +14,7 @@ public class KeyboardNavigationTests : UITestBase
 	public async Task KeyboardInput_WorksInDocumentContent()
 	{
 		await ActivateDocumentTabAsync("Document 1");
-		var textBox = await WaitForElementAsync(
-			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text == "Document 1 Content"),
-			"the text box of Document 1");
-
-		await TapAsync(textBox);
+		await FocusTextBoxAsync(e => e.Text == "Document 1 Content", "the text box of Document 1");
 		await PressKeyAsync("x");
 		await PressKeyAsync("y");
 

@@ -32,9 +32,7 @@ public class StressTests : UITestBase
 	public async Task TextPreserved_WhenSwitchingTabs_Issue139()
 	{
 		await ActivateDocumentTabAsync("Document 1");
-		await TapAsync(await WaitForElementAsync(
-			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text == "Document 1 Content"),
-			"the text box of Document 1"));
+		await FocusTextBoxAsync(e => e.Text == "Document 1 Content", "the text box of Document 1");
 
 		// Typed at the caret - without selecting all first, whose key differs between the platforms.
 		await TypeAsync("TestData139");
@@ -67,8 +65,7 @@ public class StressTests : UITestBase
 	public async Task RapidKeyboardInput_DoesNotLag_Issue162()
 	{
 		await ActivateDocumentTabAsync("Document 1");
-		var textBox = await WaitForElementAsync(() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text != null && e.Text.Contains("TestData139", StringComparison.Ordinal)), "the text box of Document 1");
-		await TapAsync(textBox);
+		await FocusTextBoxAsync(e => e.Text != null && e.Text.Contains("TestData139", StringComparison.Ordinal), "the text box of Document 1");
 
 		await TypeAsync("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 		for (var i = 0; i < 10; i++)

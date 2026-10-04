@@ -188,16 +188,23 @@ namespace AvalonDock.Avalonia.Tests
 			f.DocumentPane = null;
 			f.AnchorablePane = null;
 			f.Manager.Layout = new LayoutRoot();
-			Pump(f.Window);
-			for (var i = 0; i < 3; i++)
+			// Pending dispatcher work (layout, render, input bookkeeping) can hold the old controls for a few
+			// rounds; a leak holds them for good.
+			for (var i = 0; i < 20 && IsAlive(oldPane); i++)
 			{
+				Pump(f.Window);
 				System.GC.Collect();
 				System.GC.WaitForPendingFinalizers();
+				System.GC.Collect();
 				Dispatcher.UIThread.RunJobs();
 			}
 
-			Assert.That(oldPane.TryGetTarget(out _), Is.False, "the manager must not keep pane controls of a discarded layout alive");
+			Assert.That(IsAlive(oldPane), Is.False, "the manager must not keep pane controls of a discarded layout alive");
 		}
+
+		// Not inlined, so that the target it fetches does not outlive the call as a local of the test.
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+		private static bool IsAlive(System.WeakReference<LayoutDocumentPaneControl> reference) => reference.TryGetTarget(out _);
 
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
 		private static System.WeakReference<LayoutDocumentPaneControl> CollectPaneReference(Fixture f)

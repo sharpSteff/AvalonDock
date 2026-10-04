@@ -230,6 +230,31 @@ public abstract class UITestBase
 		await SettleAsync();
 	}
 
+	/// <summary>
+	/// Clicks a text box and waits until it has the keyboard focus, clicking again if the click did not give
+	/// it the focus - activating the document it is in can take the focus back - so typing reaches it.
+	/// </summary>
+	protected async Task FocusTextBoxAsync(Func<ElementInfo, bool> predicate, string description)
+	{
+		for (var attempt = 0; attempt < 3; attempt++)
+		{
+			var textBox = await WaitForElementAsync(() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && predicate(e)), description);
+			if (textBox.IsFocused)
+				return;
+
+			await TapAsync(textBox);
+			try
+			{
+				await WaitUntilAsync(async () => (await FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && predicate(e)))?.IsFocused == true,
+					$"{description} to have the keyboard focus", TimeSpan.FromSeconds(3));
+				return;
+			}
+			catch (AssertionException) when (attempt < 2)
+			{
+			}
+		}
+	}
+
 	protected async Task PressKeyAsync(string key)
 	{
 		Assert.That(await Client.KeyAsync(key), Is.True, $"Pressing {key} failed.");
