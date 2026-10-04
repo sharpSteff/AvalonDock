@@ -36,14 +36,14 @@ public class StressTests : UITestBase
 			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text == "Document 1 Content"),
 			"the text box of Document 1"));
 
-		await PressKeyAsync("Ctrl+A");
+		// Typed at the caret - without selecting all first, whose key differs between the platforms.
 		await TypeAsync("TestData139");
 
 		await ActivateDocumentTabAsync("Document 2");
 		await ActivateDocumentTabAsync("Document 1");
 
 		await WaitForElementAsync(
-			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text == "TestData139"),
+			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text != null && e.Text.Contains("TestData139", StringComparison.Ordinal)),
 			"the typed text after switching tabs (Issue #139)");
 	}
 
@@ -67,9 +67,8 @@ public class StressTests : UITestBase
 	public async Task RapidKeyboardInput_DoesNotLag_Issue162()
 	{
 		await ActivateDocumentTabAsync("Document 1");
-		var textBox = await WaitForElementAsync(() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text != null && e.Text.StartsWith("TestData139", StringComparison.Ordinal)), "the text box of Document 1");
+		var textBox = await WaitForElementAsync(() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text != null && e.Text.Contains("TestData139", StringComparison.Ordinal)), "the text box of Document 1");
 		await TapAsync(textBox);
-		await PressKeyAsync("Ctrl+A");
 
 		await TypeAsync("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 		for (var i = 0; i < 10; i++)
@@ -79,7 +78,7 @@ public class StressTests : UITestBase
 		}
 
 		await WaitForElementAsync(
-			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text == "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"),
+			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text != null && e.Text.Contains("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", StringComparison.Ordinal)),
 			"all typed characters (Issue #162)");
 	}
 
