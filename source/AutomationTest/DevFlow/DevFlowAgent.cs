@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using AvalonDock;
+using AvalonDock.Controls;
 using AvalonDock.Layout;
 using LeXtudio.DevFlow.Agent.Core;
 using Microsoft.Maui.DevFlow.Agent.Core;
@@ -110,6 +111,7 @@ namespace AvalonDock.UITests.Agent
 					IsFloating = content.IsFloating,
 					IsHidden = anchorable?.IsHidden ?? false,
 					IsAutoHidden = anchorable?.IsAutoHidden ?? false,
+					IsDetached = anchorable?.IsDetached ?? false,
 					IsVisible = anchorable?.IsVisible ?? true,
 					Container = content.Parent?.GetType().Name,
 				});
@@ -119,15 +121,19 @@ namespace AvalonDock.UITests.Agent
 		}
 
 		/// <summary>
-		/// Closes the floating window that holds the content with this title the way the system menu, Alt+F4 or
-		/// the taskbar do: a WM_SYSCOMMAND SC_CLOSE on WPF, the platform's close request on Avalonia. The close
-		/// is posted, because the content's Hiding handler may ask a modal question.
+		/// Closes the floating or detached window that holds the content with this title the way the system
+		/// menu, Alt+F4 or the taskbar do: a WM_SYSCOMMAND SC_CLOSE on WPF, the platform's close request on
+		/// Avalonia. The close is posted, because the content's Hiding handler may ask a modal question.
 		/// </summary>
-		[DevFlowAction("avalondock-close-floating-window", Description = "Closes the floating window holding the content with the given title, like the system menu does.")]
-		public static bool CloseFloatingWindow(string title)
+		[DevFlowAction("avalondock-close-window", Description = "Closes the floating or detached window holding the content with the given title, like the system menu does.")]
+		public static bool CloseWindowOf(string title)
 		{
-			var window = FindDockingManager()?.FloatingWindows
-				.FirstOrDefault(w => w.Model.Descendents().OfType<LayoutContent>().Any(c => c.Title == title));
+			var window = GetApplicationWindows().FirstOrDefault(w => w switch
+			{
+				LayoutFloatingWindowControl floating => floating.Model.Descendents().OfType<LayoutContent>().Any(c => c.Title == title),
+				DetachedAnchorableWindow detached => detached.Model?.Title == title,
+				_ => false,
+			});
 			if (window == null)
 				return false;
 
@@ -138,6 +144,54 @@ namespace AvalonDock.UITests.Agent
 			PostMessage(handle, 0x0112 /* WM_SYSCOMMAND */, new IntPtr(0xF060) /* SC_CLOSE */, IntPtr.Zero);
 #endif
 			return true;
+		}
+
+		/// <summary>The application's windows - kind (Main, Floating, Detached, Other), title and state - as JSON.</summary>
+		[DevFlowAction("avalondock-windows", Description = "Lists the application's windows with their kind, title and window state, as JSON.")]
+		public static string GetWindows()
+		{
+			var main = GetMainWindow();
+			return JsonSerializer.Serialize(GetApplicationWindows().Select(w => new WindowSnapshot
+			{
+				Kind = w == main ? "Main" : w is LayoutFloatingWindowControl ? "Floating" : w is DetachedAnchorableWindow ? "Detached" : "Other",
+				Title = w.Title,
+				State = w.WindowState.ToString(),
+				IsVisible = w.IsVisible,
+			}).ToList());
+		}
+
+		/// <summary>Sets the state (Normal, Minimized, Maximized) of the window with this title.</summary>
+		[DevFlowAction("avalondock-set-window-state", Description = "Sets the window state (Normal, Minimized, Maximized) of the window with the given title.")]
+		public static bool SetWindowState(string title, string state)
+		{
+			var window = GetApplicationWindows().FirstOrDefault(w => w.Title == title);
+			if (window == null)
+				return false;
+
+			window.WindowState = Enum.Parse<WindowState>(state, ignoreCase: true);
+			return true;
+		}
+
+		/// <summary>Resizes the main window, in device independent pixels.</summary>
+		[DevFlowAction("avalondock-resize-main-window", Description = "Resizes the main window to the given width and height.")]
+		public static bool ResizeMainWindow(double width, double height)
+		{
+			var window = GetMainWindow();
+			if (window == null)
+				return false;
+
+			window.Width = width;
+			window.Height = height;
+			return true;
+		}
+
+		private static IEnumerable<Window> GetApplicationWindows()
+		{
+#if AVALONIA
+			return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Windows ?? (IEnumerable<Window>)Array.Empty<Window>();
+#else
+			return Application.Current?.Windows.OfType<Window>() ?? Enumerable.Empty<Window>();
+#endif
 		}
 
 		/// <summary>
@@ -232,6 +286,18 @@ namespace AvalonDock.UITests.Agent
 		public List<ContentSnapshot> Contents { get; set; } = new List<ContentSnapshot>();
 	}
 
+	/// <summary>A window, as listed by the avalondock-windows action.</summary>
+	public sealed class WindowSnapshot
+	{
+		public string Kind { get; set; }
+
+		public string Title { get; set; }
+
+		public string State { get; set; }
+
+		public bool IsVisible { get; set; }
+	}
+
 	/// <summary>A floating window of a <see cref="LayoutSnapshot"/>.</summary>
 	public sealed class FloatingWindowSnapshot
 	{
@@ -262,6 +328,8 @@ namespace AvalonDock.UITests.Agent
 		public bool IsHidden { get; set; }
 
 		public bool IsAutoHidden { get; set; }
+
+		public bool IsDetached { get; set; }
 
 		public bool IsVisible { get; set; }
 

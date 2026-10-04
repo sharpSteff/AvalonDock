@@ -22,7 +22,7 @@ public class FloatingWindowCloseTests : UITestBase
 		await WaitUntilAsync(async () => (await FindContentAsync("Tool Window 1"))?.IsFloating == true, "Tool Window 1 to float");
 		await ArrangeFloatingWindowsAsync();
 
-		Assert.That(await InvokeAsync("avalondock-close-floating-window", "Tool Window 1"), Is.EqualTo("True"));
+		Assert.That(await InvokeAsync("avalondock-close-window", "Tool Window 1"), Is.EqualTo("True"));
 
 		// The Hiding question; answering Yes hides the tool window.
 		await AnswerDialogAsync("Yes");

@@ -122,6 +122,10 @@ public abstract class UITestBase
 		return result.ReturnValue;
 	}
 
+	/// <summary>The application's windows.</summary>
+	protected async Task<List<WindowSnapshot>> GetWindowsAsync()
+		=> JsonSerializer.Deserialize<List<WindowSnapshot>>(await InvokeAsync("avalondock-windows") ?? "[]", JsonOptions) ?? new List<WindowSnapshot>();
+
 	/// <summary>
 	/// Moves the floating windows over the main window's document area, where they cover nothing the tests
 	/// click: a new floating window opens at the top left corner of the screen.
@@ -136,7 +140,7 @@ public abstract class UITestBase
 	/// <summary>The element trees of all windows.</summary>
 	protected async Task<List<ElementInfo>> GetTreeAsync()
 	{
-		var json = await Http.GetStringAsync("/api/v1/ui/tree?native=false");
+		var json = await Http.GetStringAsync("/api/v1/ui/tree");
 		return JsonSerializer.Deserialize<List<ElementInfo>>(json, JsonOptions) ?? new List<ElementInfo>();
 	}
 
@@ -261,17 +265,47 @@ public abstract class UITestBase
 		await AnswerDialogAsync(confirm ? "Yes" : "No");
 	}
 
+	/// <summary>Saves the layout through the TestApp's Layout > Save menu.</summary>
+	protected async Task SaveLayoutAsync(string name)
+	{
+		await ClickMenuAsync("Layout", "Save", name);
+		await SettleAsync();
+	}
+
+	/// <summary>Loads a layout through the TestApp's Layout > Load menu.</summary>
+	protected async Task LoadLayoutAsync(string name)
+	{
+		await ClickMenuAsync("Layout", "Load", name);
+		await WaitUntilAsync(async () => (await GetLayoutAsync()).ManagerLoaded, "the layout to load");
+		await SettleAsync();
+	}
+
+	/// <summary>Types text into the focused element, character by character, with native input.</summary>
+	protected async Task TypeAsync(string text)
+	{
+		foreach (var ch in text)
+			Assert.That(await Client.KeyAsync(ch.ToString()), Is.True, $"Typing '{ch}' failed.");
+		await SettleAsync();
+	}
+
+	/// <summary>Moves the pointer over an element.</summary>
+	protected Task MovePointerToAsync(ElementInfo element) => PostActionAsync("move", new { elementId = element.Id });
+
 	/// <summary>Clicks through a menu path, e.g. ("Tools", "Tool Window1").</summary>
 	protected async Task ClickMenuAsync(params string[] path)
 	{
 		foreach (var header in path)
 		{
 			var item = await WaitForElementAsync(
-				() => FindElementAsync(e => e.Type == "MenuItem" && e.IsVisible && e.Text == header),
+				() => FindElementAsync(e => e.Type == "MenuItem" && e.IsVisible && MenuHeaderIs(e, header)),
 				$"menu item '{header}'");
 			await TapAsync(item);
 		}
 	}
+
+	/// <summary>Whether a menu item shows the header, ignoring the underscore that marks an access key.</summary>
+	protected static bool MenuHeaderIs(ElementInfo item, string header)
+		=> item.Text != null && item.Text.Replace("_", string.Empty, StringComparison.Ordinal) == header.Replace("_", string.Empty, StringComparison.Ordinal);
 
 	// ===== Dialogs =====
 
@@ -416,6 +450,18 @@ public sealed class LayoutSnapshot
 	public IEnumerable<ContentSnapshot> Anchorables => Contents.Where(c => c.Kind == "Anchorable");
 }
 
+/// <summary>A window of the application, as listed by the avalondock-windows action.</summary>
+public sealed class WindowSnapshot
+{
+	public string Kind { get; set; } = string.Empty;
+
+	public string? Title { get; set; }
+
+	public string? State { get; set; }
+
+	public bool IsVisible { get; set; }
+}
+
 /// <summary>A floating window of a <see cref="LayoutSnapshot"/>.</summary>
 public sealed class FloatingWindowSnapshot
 {
@@ -446,6 +492,8 @@ public sealed class ContentSnapshot
 	public bool IsHidden { get; set; }
 
 	public bool IsAutoHidden { get; set; }
+
+	public bool IsDetached { get; set; }
 
 	public bool IsVisible { get; set; }
 

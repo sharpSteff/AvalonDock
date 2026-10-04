@@ -852,6 +852,7 @@ namespace AvalonDock
 		private ToggleDockButtonBar CreateBar(DockZone zone, List<LayoutAnchorable> anchorables)
 		{
 			var bar = new ToggleDockButtonBar { Orientation = Orientation.Vertical, Zone = zone, Name = "ToggleDockBar_" + zone };
+			Avalonia.Automation.AutomationProperties.SetAutomationId(bar, "ToggleDockBar_" + zone);
 			bar.SetAnchorables(anchorables, zone);
 			return bar;
 		}

@@ -179,6 +179,9 @@ namespace AvalonDock.Controls
 		private void OnAnchorableChanged(LayoutAnchorable anc)
 		{
 			if (anc == null) return;
+
+			// The title, as on WPF; the template shows it through the header template, not through Content.
+			Content = anc.Title;
 			IsChecked = !anc.IsAutoHidden;
 
 			// Icon: prefer the attached ToggleDock.Icon, then the icon of the IToolbox view model (anchorables

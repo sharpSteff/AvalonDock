@@ -36,7 +36,19 @@ public class ToolWindowTests : UITestBase
 		Assert.That(timer, Is.Not.Null, "Tool window content should be accessible when activated.");
 	}
 
+	/// <summary>The tool windows on the left and on the right of the documents are both reachable.</summary>
 	[Test, Order(4)]
+	public async Task ToolWindows_OnDifferentSides_AreAccessible()
+	{
+		var middle = (await GetLayoutAsync()).WindowWidth / 2;
+		var winForms = await FindToolWindowHeaderAsync("WinForms Window");
+		var tool1 = await FindToolWindowHeaderAsync("Tool Window 1");
+
+		Assert.That(winForms?.Bounds?.X, Is.LessThan(middle), "WinForms Window should be on the left of the documents.");
+		Assert.That(tool1?.Bounds?.X, Is.GreaterThan(middle), "Tool Window 1 should be on the right of the documents.");
+	}
+
+	[Test, Order(5)]
 	public async Task AutoHideTabs_ArePresent_Issue362()
 	{
 		Assert.That(await FindToolWindowHeaderAsync("AutoHide1 Content"), Is.Not.Null, "AutoHide1 Content tab should be present on the window edge (Issue #362).");
@@ -48,7 +60,7 @@ public class ToolWindowTests : UITestBase
 	}
 
 	/// <summary>Regression for #169: clicking an auto-hide tab opens its flyout.</summary>
-	[Test, Order(5)]
+	[Test, Order(6)]
 	public async Task ClickAutoHideTab_OpensFlyout_Issue169()
 	{
 		await TapToolWindowHeaderAsync("AutoHide1 Content");
@@ -61,7 +73,7 @@ public class ToolWindowTests : UITestBase
 		await ActivateDocumentTabAsync("Document 1");
 	}
 
-	[Test, Order(6)]
+	[Test, Order(7)]
 	public async Task NewFloatingWindow_CreatesFloatingToolWindow()
 	{
 		var initialCount = (await GetLayoutAsync()).FloatingWindowCount;
