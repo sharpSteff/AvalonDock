@@ -47,8 +47,8 @@ Tests must be run single-threaded (`-m:1`) because WPF requires STA (Single-Thre
 
 | Category | Command | Description |
 |:---------|:--------|:------------|
-| Unit Tests | `dotnet test --filter "Category!=FlaUI" -m:1` | Fast unit tests |
-| UI Tests | `dotnet test --filter "Category=FlaUI" --framework net10.0-windows -m:1` | FlaUI-based UI automation tests |
+| Unit Tests | `dotnet test --filter "Category!=UI" -m:1` | Fast unit tests |
+| UI Tests | `dotnet test source/AutomationTest/AvalonDock.UITests --no-build` | DevFlow UI tests for WPF and Avalonia, see [UI tests](../guides/ui-tests.md) |
 
 ## Solution Structure
 
@@ -64,7 +64,7 @@ source/
 │   ├── AvalonDock.Serializer.Xml/  # XML serializer
 │   ├── AvalonDock.Serializer.Json/ # JSON serializer
 │   └── AvalonDock.Themes.*/        # Theme packages
-├── AutomationTest/                 # FlaUI UI tests
+├── AutomationTest/                 # Unit tests and DevFlow UI tests
 ├── TestApp/                        # Test/demo application
 ├── MVVMTestApp/                    # MVVM demo application
 ├── MLibTest/                       # MLib integration demo

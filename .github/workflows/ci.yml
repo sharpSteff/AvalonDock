@@ -43,21 +43,8 @@ jobs:
           dotnet test source/AvalonDock.sln
           --configuration Release
           --no-restore
-          --filter "Category!=FlaUI&Category!=UI"
+          --filter "Category!=UI"
           --logger "trx;LogFilePrefix=unit-test-results"
-          --results-directory TestResults
-          -m:1
-
-      # The FlaUI tests all live in AvalonDockTest. Running them through the solution would force
-      # net10.0-windows onto the Avalonia projects in it, which target plain net10.0.
-      - name: Test (FlaUI UI Tests)
-        run: >
-          dotnet test source/AutomationTest/AvalonDockTest/AvalonDockTest.csproj
-          --configuration Release
-          --no-restore
-          --filter "Category=FlaUI"
-          --framework net10.0-windows
-          --logger "trx;LogFilePrefix=flaui-test-results"
           --results-directory TestResults
           -m:1
 

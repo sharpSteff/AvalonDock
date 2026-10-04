@@ -76,28 +76,30 @@ jobs:
           dotnet test source/AvalonDock.sln
           --configuration Release
           --no-restore
-          --filter "Category!=FlaUI&Category!=UI"
+          --filter "Category!=UI"
           --logger "trx;LogFilePrefix=unit-test-results"
           --results-directory TestResults
           -m:1
 
-      - name: Test (FlaUI UI Tests)
+      - name: Test (UI Tests, WPF)
+        env:
+          AVALONDOCK_UI: wpf
+          AVALONDOCK_UI_ARTIFACTS: ${{ github.workspace }}/TestResults/ui-artifacts
         run: >
-          dotnet test source/AvalonDock.sln
+          dotnet test source/AutomationTest/AvalonDock.UITests/AvalonDock.UITests.csproj
           --configuration Release
-          --no-restore
-          --filter "Category=FlaUI"
-          --framework net10.0-windows
-          --logger "trx;LogFilePrefix=flaui-test-results"
+          --no-build
+          --logger "trx;LogFilePrefix=ui-test-results-wpf"
           --results-directory TestResults
-          -m:1
 
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results
-          path: TestResults/*.trx
+          path: |
+            TestResults/*.trx
+            TestResults/ui-artifacts
           retention-days: 14
 
       - name: Pack NuGet packages

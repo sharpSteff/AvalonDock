@@ -24,16 +24,22 @@ Tests must run with `-m:1` (single-threaded) because multiple test projects targ
 ### Unit Tests
 
 ```powershell
-dotnet test source/AvalonDock.sln --configuration Release --no-restore --filter "Category!=FlaUI" -m:1
+dotnet test source/AvalonDock.sln --configuration Release --no-restore --filter "Category!=UI" -m:1
 ```
 
-### FlaUI UI Tests
+### UI Tests
 
-These are UI automation tests that launch actual WPF windows. Run them separately, targeting .NET 10:
+`source/AutomationTest/AvalonDock.UITests` drives the demo applications through a DevFlow agent (the `external/ui-labs`
+submodule). The same tests run against the WPF and the Avalonia builds; `AVALONDOCK_UI` (`wpf` or `avalonia`) selects
+the build. Build the solution first, then:
 
 ```powershell
-dotnet test source/AvalonDock.sln --configuration Release --no-restore --filter "Category=FlaUI" --framework net10.0-windows -m:1
+git submodule update --init --recursive
+$env:AVALONDOCK_UI = "wpf"
+dotnet test source/AutomationTest/AvalonDock.UITests --configuration Release --no-build
 ```
+
+See `docs/guides/ui-tests.md`.
 
 ## Project Structure
 
@@ -44,9 +50,9 @@ dotnet test source/AvalonDock.sln --configuration Release --no-restore --filter 
 - `source/Components/AvalonDock.Serializer.Json` — JSON layout serializer
 - `source/Components/AvalonDock.DependencyInjection` — DI registration extensions
 - `source/Components/AvalonDock.Mvvm` — MVVM base classes (DockableBase, ToolboxBase)
-- `source/AutomationTest/` — Unit and FlaUI test projects
+- `source/AutomationTest/` — Unit test projects and the DevFlow UI tests (`AvalonDock.UITests`)
 - `source/TestApp`, `source/MVVMTestApp` — Classic sample applications
-- `source/AvalonDockCodeApp` — ToggleDockingManager sample, driven by the FlaUI toggle-dock tests
+- `source/AvalonDockCodeApp` — ToggleDockingManager sample, driven by the toggle-dock UI tests
 
 ## Code Style
 
