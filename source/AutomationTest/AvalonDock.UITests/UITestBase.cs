@@ -59,9 +59,44 @@ public abstract class UITestBase
 		if (Session == null || Session.HasExited)
 			return;
 
+		if (TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed)
+			await SaveFailureEvidenceAsync();
+
 		// Close menus and popups a failed test may have left open.
 		await Client.KeyAsync("Escape");
 		await AnswerDialogIfPresentAsync("No");
+	}
+
+	/// <summary>
+	/// Saves a screenshot of the main window and the layout model of a failed test, as test attachments, to
+	/// AVALONDOCK_UI_ARTIFACTS if that is set (CI uploads it) and the test's work directory otherwise.
+	/// </summary>
+	private async Task SaveFailureEvidenceAsync()
+	{
+		try
+		{
+			var directory = Environment.GetEnvironmentVariable("AVALONDOCK_UI_ARTIFACTS");
+			if (string.IsNullOrWhiteSpace(directory))
+				directory = Path.Combine(TestContext.CurrentContext.WorkDirectory, "ui-artifacts");
+			Directory.CreateDirectory(directory);
+
+			var name = $"{Framework}-{GetType().Name}-{TestContext.CurrentContext.Test.Name}";
+			var screenshot = await Client.ScreenshotAsync();
+			if (screenshot != null)
+			{
+				var path = Path.Combine(directory, name + ".png");
+				await File.WriteAllBytesAsync(path, screenshot);
+				TestContext.AddTestAttachment(path);
+			}
+
+			var layoutPath = Path.Combine(directory, name + ".layout.json");
+			await File.WriteAllTextAsync(layoutPath, (await Client.InvokeActionAsync("avalondock-layout"))?.ReturnValue ?? string.Empty);
+			TestContext.AddTestAttachment(layoutPath);
+		}
+		catch (Exception ex)
+		{
+			TestContext.Progress.WriteLine($"[UITestBase] Could not save the failure evidence: {ex.Message}");
+		}
 	}
 
 	// ===== Layout model =====
@@ -76,6 +111,22 @@ public abstract class UITestBase
 		return JsonSerializer.Deserialize<LayoutSnapshot>(result.ReturnValue, JsonOptions)
 			?? throw new InvalidOperationException("avalondock-layout returned no layout.");
 	}
+
+	/// <summary>Invokes a DevFlow action of the demo (see DevFlowAgent.cs) and returns its result as text.</summary>
+	protected async Task<string?> InvokeAsync(string action, params string[] args)
+	{
+		var jsonArgs = new System.Text.Json.Nodes.JsonArray(args.Select(a => (System.Text.Json.Nodes.JsonNode?)a).ToArray());
+		var result = await Client.InvokeActionAsync(action, jsonArgs);
+		if (result is not { Success: true })
+			throw new InvalidOperationException($"{action} failed: {result?.Error ?? "no answer"}");
+		return result.ReturnValue;
+	}
+
+	/// <summary>
+	/// Moves the floating windows over the main window's document area, where they cover nothing the tests
+	/// click: a new floating window opens at the top left corner of the screen.
+	/// </summary>
+	protected Task ArrangeFloatingWindowsAsync() => InvokeAsync("avalondock-arrange-floating-windows");
 
 	protected async Task<ContentSnapshot?> FindContentAsync(string title)
 		=> (await GetLayoutAsync()).Contents.FirstOrDefault(c => c.Title == title);
@@ -124,8 +175,9 @@ public abstract class UITestBase
 	{
 		var roots = await GetTreeAsync();
 
-		// In order of preference: a tab selects the tool window without touching the pane's buttons.
-		foreach (var type in new[] { "LayoutAnchorableTabItem", "LayoutAnchorControl", "AnchorablePaneTitle" })
+		// In order of preference: a tab selects the tool window without touching the pane's buttons. A floating
+		// window with a single tool window shows its title in the window's title bar.
+		foreach (var type in new[] { "LayoutAnchorableTabItem", "LayoutAnchorControl", "AnchorablePaneTitle", "LayoutAnchorableFloatingWindowControl" })
 		{
 			foreach (var root in roots)
 			{
@@ -352,11 +404,28 @@ public sealed class LayoutSnapshot
 
 	public string? LastFocusedDocument { get; set; }
 
+	/// <summary>The title of the content whose auto-hide flyout is open, if one is.</summary>
+	public string? AutoHideWindowContent { get; set; }
+
+	public List<FloatingWindowSnapshot> FloatingWindows { get; set; } = new();
+
 	public List<ContentSnapshot> Contents { get; set; } = new();
 
 	public IEnumerable<ContentSnapshot> Documents => Contents.Where(c => c.Kind == "Document");
 
 	public IEnumerable<ContentSnapshot> Anchorables => Contents.Where(c => c.Kind == "Anchorable");
+}
+
+/// <summary>A floating window of a <see cref="LayoutSnapshot"/>.</summary>
+public sealed class FloatingWindowSnapshot
+{
+	public List<string> Contents { get; set; } = new();
+
+	public bool IsVisible { get; set; }
+
+	public double Width { get; set; }
+
+	public double Height { get; set; }
 }
 
 /// <summary>One document or anchorable of a <see cref="LayoutSnapshot"/>.</summary>

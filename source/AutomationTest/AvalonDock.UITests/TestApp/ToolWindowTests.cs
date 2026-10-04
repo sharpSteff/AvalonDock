@@ -53,10 +53,9 @@ public class ToolWindowTests : UITestBase
 	{
 		await TapToolWindowHeaderAsync("AutoHide1 Content");
 
-		var flyoutContent = await WaitForElementAsync(
-			() => FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && e.Text != null && e.Text.StartsWith("AutoHide Attached to Timer", StringComparison.Ordinal)),
-			"the flyout of AutoHide1 Content");
-		Assert.That(flyoutContent, Is.Not.Null, "Clicking auto-hide tab should open its flyout (Issue #169).");
+		await WaitUntilAsync(
+			async () => (await GetLayoutAsync()).AutoHideWindowContent == "AutoHide1 Content",
+			"the flyout of AutoHide1 Content to open (Issue #169)");
 
 		// Click the document area to close the flyout.
 		await ActivateDocumentTabAsync("Document 1");
@@ -70,6 +69,7 @@ public class ToolWindowTests : UITestBase
 		await ClickMenuAsync("Tools", "New floating window");
 
 		await WaitUntilAsync(async () => (await GetLayoutAsync()).FloatingWindowCount > initialCount, "a new floating window");
+		await ArrangeFloatingWindowsAsync();
 		var created = (await GetLayoutAsync()).Contents.Single(c => c.Title == "Floating window with initial usercontrol size");
 		Assert.That(created.IsFloating, Is.True, "New floating window menu item should create a floating tool window.");
 	}

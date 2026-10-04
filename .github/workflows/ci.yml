@@ -66,6 +66,7 @@ jobs:
       - name: Test (UI Tests, WPF)
         env:
           AVALONDOCK_UI: wpf
+          AVALONDOCK_UI_ARTIFACTS: ${{ github.workspace }}/TestResults/ui-artifacts
         run: >
           dotnet test source/AutomationTest/AvalonDock.UITests/AvalonDock.UITests.csproj
           --configuration Release
@@ -78,5 +79,7 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: TestResults/*.trx
+          path: |
+            TestResults/*.trx
+            TestResults/ui-artifacts
           retention-days: 14

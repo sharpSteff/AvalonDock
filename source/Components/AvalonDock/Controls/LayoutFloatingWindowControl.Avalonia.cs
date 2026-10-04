@@ -44,6 +44,9 @@ namespace AvalonDock.Controls
 		private const double CompactDragHeight = 28.0;
 		private const double CompactDragGap = 16.0;
 
+		/// <summary>How far, in device independent pixels, the pointer moves before a caption press becomes a drag.</summary>
+		private const double CaptionDragThreshold = 4.0;
+
 		private Size? _sizeBeforeCompactDrag;
 		private Vector _grabOffsetBeforeCompactDrag;
 
@@ -55,9 +58,11 @@ namespace AvalonDock.Controls
 		private IPointer _dragPointer;
 		private Vector _dragGrabOffset;
 		private Point _lastDragScreenPoint;
+		private Point? _pendingCaptionDragStart;
 		private bool _suppressFloatingPropertiesUpdate;
 		private IStyle _appliedThemeStyles;
 		private bool _isPositionInitialized;
+		private bool _isSizedToContent;
 		private readonly System.Collections.Generic.HashSet<AvaloniaProperty> _mirroredProperties = new System.Collections.Generic.HashSet<AvaloniaProperty>();
 
 		/// <summary><see cref="IsContentImmutable"/> property.</summary>
@@ -299,7 +304,11 @@ namespace AvalonDock.Controls
 			ActivateContentForCaptionPress();
 			var screenPoint = this.LocalToScreen(e.GetPosition(this));
 			var grabOffset = new Vector(screenPoint.X - Position.X, screenPoint.Y - Position.Y);
-			BeginDrag(e.Pointer, this, screenPoint, grabOffset);
+
+			// Like the WPF window, whose drag starts when the window moves: a click on the caption only
+			// activates the window, and starts no drag (with its drop targets and, without a compositor, the
+			// window shrunk to a ghost of itself).
+			BeginDrag(e.Pointer, this, screenPoint, grabOffset, waitForMove: true);
 			e.Handled = true;
 		}
 
@@ -378,6 +387,7 @@ namespace AvalonDock.Controls
 			var dragService = _dragService;
 			if (dragService == null) return false;
 			_dragService = null;
+			_pendingCaptionDragStart = null;
 			DetachDragHandlers();
 			SetCompactDrag(false);
 
@@ -397,7 +407,7 @@ namespace AvalonDock.Controls
 			return dropHandled;
 		}
 
-		private void BeginDrag(IPointer pointer, Control captureTarget, Point screenPoint, Vector grabOffset)
+		private void BeginDrag(IPointer pointer, Control captureTarget, Point screenPoint, Vector grabOffset, bool waitForMove = false)
 		{
 			if (_dragService != null) EndDrag(false);
 			if (Model?.Root?.Manager == null) return;
@@ -414,7 +424,11 @@ namespace AvalonDock.Controls
 			captureTarget.AddHandler(KeyDownEvent, OnDragKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
 			pointer.Capture(captureTarget);
 
-			DragTo(screenPoint);
+			_lastDragScreenPoint = screenPoint;
+			if (waitForMove)
+				_pendingCaptionDragStart = screenPoint;
+			else
+				DragTo(screenPoint);
 		}
 
 		private void DetachDragHandlers()
@@ -437,8 +451,15 @@ namespace AvalonDock.Controls
 			var captureTarget = _dragCaptureTarget;
 			if (captureTarget == null) return;
 			var screenPoint = captureTarget.LocalToScreen(e.GetPosition(captureTarget));
-			DragTo(screenPoint);
 			e.Handled = true;
+			if (_pendingCaptionDragStart is { } start)
+			{
+				var threshold = CaptionDragThreshold * GetDesktopScaling();
+				if (Math.Abs(screenPoint.X - start.X) < threshold && Math.Abs(screenPoint.Y - start.Y) < threshold) return;
+				_pendingCaptionDragStart = null;
+			}
+
+			DragTo(screenPoint);
 		}
 
 		private void OnDragPointerReleased(object sender, PointerReleasedEventArgs e)
@@ -447,7 +468,9 @@ namespace AvalonDock.Controls
 			var captureTarget = _dragCaptureTarget;
 			if (captureTarget != null) _lastDragScreenPoint = captureTarget.LocalToScreen(e.GetPosition(captureTarget));
 			e.Handled = true;
-			EndDrag(drop: true);
+
+			// A caption press released before the pointer moved is a click, not a drop.
+			EndDrag(drop: _pendingCaptionDragStart == null);
 		}
 
 		private void OnDragPointerCaptureLost(object sender, PointerCaptureLostEventArgs e)
@@ -530,9 +553,42 @@ namespace AvalonDock.Controls
 			Dispatcher.UIThread.Post(
 				() =>
 				{
+					UpdateWindowSizeBasedOnMinSize();
 					if (IsVisible && !IsDragging) UpdatePositionAndSizeOfPanes();
 				},
 				DispatcherPriority.Background);
+		}
+
+		/// <summary>
+		/// Once the window has been laid out the first time, enlarges it so that its contents get their minimum
+		/// size and, with <see cref="DockingManager.AutoWindowSizeWhenOpened"/>, the size they ask for - what the
+		/// WPF window does on its first activation. A window floated straight after its content was added to the
+		/// layout has no measured size to start from otherwise.
+		/// </summary>
+		private void UpdateWindowSizeBasedOnMinSize()
+		{
+			if (_isSizedToContent || !IsVisible || Model == null) return;
+			_isSizedToContent = true;
+
+			var autoSize = Model.Root?.Manager?.AutoWindowSizeWhenOpened == true;
+			double extraWidth = 0, extraHeight = 0;
+			foreach (var content in Model.Descendents().OfType<LayoutContent>().Select(c => c.Content).OfType<Control>())
+			{
+				// The content's host gets the space the window has for it; the content may be larger and clipped.
+				if (content.GetVisualParent() is not Visual host) continue;
+
+				var wanted = new Size(
+					content.MinWidth + content.Margin.Left + content.Margin.Right,
+					content.MinHeight + content.Margin.Top + content.Margin.Bottom);
+				if (autoSize)
+					wanted = new Size(Math.Max(wanted.Width, content.DesiredSize.Width), Math.Max(wanted.Height, content.DesiredSize.Height));
+
+				extraWidth = Math.Max(extraWidth, wanted.Width - host.Bounds.Width);
+				extraHeight = Math.Max(extraHeight, wanted.Height - host.Bounds.Height);
+			}
+
+			if (extraWidth > 0) Width = Bounds.Width + extraWidth;
+			if (extraHeight > 0) Height = Bounds.Height + extraHeight;
 		}
 
 		/// <summary>Copies the inheritable values of the manager onto this top level, which cannot inherit them.</summary>

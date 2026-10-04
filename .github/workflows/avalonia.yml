@@ -127,6 +127,7 @@ jobs:
       - name: UI tests (Avalonia)
         env:
           AVALONDOCK_UI: avalonia
+          AVALONDOCK_UI_ARTIFACTS: ${{ github.workspace }}/TestResults/ui/artifacts
           DISPLAY: ':99'
         run: >
           dotnet test source/AutomationTest/AvalonDock.UITests/AvalonDock.UITests.csproj

@@ -78,6 +78,24 @@ namespace AvalonDock.UITests.Agent
 			snapshot.ActiveContent = root.ActiveContent?.Title;
 			snapshot.LastFocusedDocument = root.LastFocusedDocument?.Title;
 
+			snapshot.AutoHideWindowContent = (manager.AutoHideWindow?.Model as LayoutContent)?.Title;
+			foreach (var floatingWindow in manager.FloatingWindows)
+			{
+				snapshot.FloatingWindows.Add(new FloatingWindowSnapshot
+				{
+					Contents = floatingWindow.Model.Descendents().OfType<LayoutContent>().Select(c => c.Title).ToList(),
+#if AVALONIA
+					IsVisible = floatingWindow.IsVisible,
+					Width = floatingWindow.Bounds.Width,
+					Height = floatingWindow.Bounds.Height,
+#else
+					IsVisible = floatingWindow.IsVisible,
+					Width = floatingWindow.ActualWidth,
+					Height = floatingWindow.ActualHeight,
+#endif
+				});
+			}
+
 			var contents = root.Descendents().OfType<LayoutContent>().Concat(root.Hidden).Distinct();
 			foreach (var content in contents)
 			{
@@ -100,6 +118,65 @@ namespace AvalonDock.UITests.Agent
 			return snapshot;
 		}
 
+		/// <summary>
+		/// Closes the floating window that holds the content with this title the way the system menu, Alt+F4 or
+		/// the taskbar do: a WM_SYSCOMMAND SC_CLOSE on WPF, the platform's close request on Avalonia. The close
+		/// is posted, because the content's Hiding handler may ask a modal question.
+		/// </summary>
+		[DevFlowAction("avalondock-close-floating-window", Description = "Closes the floating window holding the content with the given title, like the system menu does.")]
+		public static bool CloseFloatingWindow(string title)
+		{
+			var window = FindDockingManager()?.FloatingWindows
+				.FirstOrDefault(w => w.Model.Descendents().OfType<LayoutContent>().Any(c => c.Title == title));
+			if (window == null)
+				return false;
+
+#if AVALONIA
+			Avalonia.Threading.Dispatcher.UIThread.Post(window.Close);
+#else
+			var handle = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+			PostMessage(handle, 0x0112 /* WM_SYSCOMMAND */, new IntPtr(0xF060) /* SC_CLOSE */, IntPtr.Zero);
+#endif
+			return true;
+		}
+
+		/// <summary>
+		/// Moves the floating windows over the document area of the main window, so that they cover neither
+		/// its menu nor its tabs and side panels: a new floating window opens at the screen's top left corner,
+		/// where it would hide whatever the tests click next.
+		/// </summary>
+		[DevFlowAction("avalondock-arrange-floating-windows", Description = "Moves the floating windows over the document area of the main window.")]
+		public static int ArrangeFloatingWindows()
+		{
+			var main = GetMainWindow();
+			var manager = FindDockingManager();
+			if (main == null || manager == null)
+				return 0;
+
+			var count = 0;
+			foreach (var window in manager.FloatingWindows)
+			{
+				var offset = 24 * count++;
+#if AVALONIA
+				var scaling = main.RenderScaling;
+				window.Position = new PixelPoint(
+					main.Position.X + (int)Math.Round((200 + offset) * scaling),
+					main.Position.Y + (int)Math.Round((150 + offset) * scaling));
+#else
+				window.Left = main.Left + 200 + offset;
+				window.Top = main.Top + 150 + offset;
+#endif
+			}
+
+			return count;
+		}
+
+#if !AVALONIA
+		[System.Runtime.InteropServices.DllImport("user32.dll")]
+		[return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+		private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+#endif
 		private static Window GetMainWindow()
 		{
 #if AVALONIA
@@ -118,12 +195,13 @@ namespace AvalonDock.UITests.Agent
 #endif
 		}
 
+		// Whether the manager is in the window's visual tree (Layout > Unload Manager takes it out).
 		private static bool IsLoaded(DockingManager manager)
 		{
 #if AVALONIA
 			return manager.IsAttachedToVisualTree();
 #else
-			return manager.IsLoaded;
+			return System.Windows.Media.VisualTreeHelper.GetParent(manager) != null;
 #endif
 		}
 	}
@@ -147,7 +225,23 @@ namespace AvalonDock.UITests.Agent
 
 		public string LastFocusedDocument { get; set; }
 
+		public string AutoHideWindowContent { get; set; }
+
+		public List<FloatingWindowSnapshot> FloatingWindows { get; set; } = new List<FloatingWindowSnapshot>();
+
 		public List<ContentSnapshot> Contents { get; set; } = new List<ContentSnapshot>();
+	}
+
+	/// <summary>A floating window of a <see cref="LayoutSnapshot"/>.</summary>
+	public sealed class FloatingWindowSnapshot
+	{
+		public List<string> Contents { get; set; } = new List<string>();
+
+		public bool IsVisible { get; set; }
+
+		public double Width { get; set; }
+
+		public double Height { get; set; }
 	}
 
 	/// <summary>One document or anchorable of a <see cref="LayoutSnapshot"/>.</summary>

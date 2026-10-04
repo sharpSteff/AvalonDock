@@ -87,8 +87,15 @@ namespace AvalonDock.Controls
 			};
 
 			if (model == null || focusedElement is not IInputElement inputElement) return;
+
+			// A window that is activated again (when a menu or another window closes, say) gives the focus back
+			// to the element that had it. That is no new choice of content: activating that content again would
+			// undo an activation made in between, e.g. by the menu command that just ran.
+			var isFocusRestore = e.NavigationMethod == NavigationMethod.Unspecified
+				&& ReferenceEquals(GetLastFocusedElement(model), inputElement);
+
 			_modelFocusedElement.AddOrUpdate(model, new WeakReference<IInputElement>(inputElement));
-			if (model is LayoutContent content && !content.IsActive) content.IsActive = true;
+			if (!isFocusRestore && model is LayoutContent content && !content.IsActive) content.IsActive = true;
 		}
 	}
 }

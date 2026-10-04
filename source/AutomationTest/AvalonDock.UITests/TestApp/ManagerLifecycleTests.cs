@@ -54,6 +54,7 @@ public class ManagerLifecycleTests : UITestBase
 		var before = (await GetLayoutAsync()).FloatingWindowCount;
 		await ClickMenuAsync("Tools", "New floating window");
 		await WaitUntilAsync(async () => (await GetLayoutAsync()).FloatingWindowCount > before, "a new floating window");
+		await ArrangeFloatingWindowsAsync();
 
 		await UnloadManagerAsync();
 		await LoadManagerAsync();
