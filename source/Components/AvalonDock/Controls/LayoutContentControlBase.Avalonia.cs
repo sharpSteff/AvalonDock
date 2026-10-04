@@ -75,7 +75,10 @@ namespace AvalonDock.Controls
 		/// <inheritdoc/>
 		protected override void OnGotFocus(FocusChangedEventArgs e)
 		{
-			SetIsActive();
+			// Not when the focus only comes back to where it was, see FocusElementManager.IsFocusRestore.
+			var model = ContentModel;
+			if (model == null || !FocusElementManager.IsFocusRestore(model, e))
+				SetIsActive();
 			base.OnGotFocus(e);
 		}
 

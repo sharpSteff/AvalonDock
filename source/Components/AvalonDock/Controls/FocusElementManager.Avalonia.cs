@@ -71,6 +71,20 @@ namespace AvalonDock.Controls
 				DispatcherPriority.Input);
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether a focus change gives the focus back to the element of
+		/// <paramref name="model"/> that had it last - what a window that is activated again (when a menu or
+		/// another window closes, say) does. That is no new choice of content: activating that content again
+		/// would undo an activation made in between, e.g. by the menu command that just ran.
+		/// </summary>
+		/// <param name="model">The content the focused element belongs to.</param>
+		/// <param name="e">The focus change.</param>
+		/// <returns><see langword="true"/> for a focus restore.</returns>
+		internal static bool IsFocusRestore(ILayoutElement model, FocusChangedEventArgs e)
+			=> e.NavigationMethod == NavigationMethod.Unspecified
+				&& e.Source is IInputElement element
+				&& ReferenceEquals(GetLastFocusedElement(model), element);
+
 		private static void OnGotFocus(object sender, FocusChangedEventArgs e)
 		{
 			if (e.Source is not Visual focusedElement) return;
@@ -88,11 +102,7 @@ namespace AvalonDock.Controls
 
 			if (model == null || focusedElement is not IInputElement inputElement) return;
 
-			// A window that is activated again (when a menu or another window closes, say) gives the focus back
-			// to the element that had it. That is no new choice of content: activating that content again would
-			// undo an activation made in between, e.g. by the menu command that just ran.
-			var isFocusRestore = e.NavigationMethod == NavigationMethod.Unspecified
-				&& ReferenceEquals(GetLastFocusedElement(model), inputElement);
+			var isFocusRestore = IsFocusRestore(model, e);
 
 			_modelFocusedElement.AddOrUpdate(model, new WeakReference<IInputElement>(inputElement));
 			if (!isFocusRestore && model is LayoutContent content && !content.IsActive) content.IsActive = true;
