@@ -174,6 +174,10 @@ screenshots. CI runs it on Windows, macOS and Linux (with and without a composit
 dotnet run --project source/AutomationTest/AvalonDock.Avalonia.PlatformTests -- --screenshots shots
 ```
 
+The UI tests in `source/AutomationTest/AvalonDock.UITests` drive the demo applications (below) through
+[DevFlow](https://github.com/lextudio/ui-labs) - real clicks and key presses - and run unchanged against
+their WPF builds and their Avalonia builds. See [UI tests](ui-tests.md).
+
 `source/AvalonDockAvaloniaApp` is a sample application with both managers and a light/dark switch:
 
 ```bash
