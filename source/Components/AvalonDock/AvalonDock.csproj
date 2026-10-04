@@ -33,6 +33,12 @@
 		<Resource Include="**\*.png"/>
 	</ItemGroup>
 
+	<ItemGroup>
+		<!-- Avalonia implementations, built by AvalonDock.Avalonia.csproj in this folder, which also
+		     keeps its intermediate files under obj\Avalonia. -->
+		<Compile Remove="**\*.Avalonia.cs" />
+	</ItemGroup>
+
 	<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
 		<Compile Remove="Controls\Shell\**\*.cs" />
 	</ItemGroup>

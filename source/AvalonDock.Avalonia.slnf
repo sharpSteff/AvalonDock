@@ -1,0 +1,17 @@
+{
+  "solution": {
+    "path": "AvalonDock.sln",
+    "projects": [
+      "AutomationTest\\AvalonDock.Avalonia.PlatformTests\\AvalonDock.Avalonia.PlatformTests.csproj",
+      "AutomationTest\\AvalonDock.Avalonia.Tests\\AvalonDock.Avalonia.Tests.csproj",
+      "AvalonDockAvaloniaApp\\AvalonDockAvaloniaApp.csproj",
+      "AvaloniaDemoProject\\AvaloniaDemoProject.csproj",
+      "Components\\AvalonDock.Core\\AvalonDock.Core.csproj",
+      "Components\\AvalonDock.DependencyInjection\\AvalonDock.DependencyInjection.csproj",
+      "Components\\AvalonDock.Mvvm.CommunityToolkit\\AvalonDock.Mvvm.CommunityToolkit.csproj",
+      "Components\\AvalonDock.Mvvm\\AvalonDock.Mvvm.csproj",
+      "Components\\AvalonDock.Serializer.Xml\\AvalonDock.Serializer.Xml.csproj",
+      "Components\\AvalonDock\\AvalonDock.Avalonia.csproj"
+    ]
+  }
+}

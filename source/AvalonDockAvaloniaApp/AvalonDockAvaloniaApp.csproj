@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Components\AvalonDock.Avalonia\AvalonDock.Avalonia.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock\AvalonDock.Avalonia.csproj" />
 	</ItemGroup>
 
 </Project>

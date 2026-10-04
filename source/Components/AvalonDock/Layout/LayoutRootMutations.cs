@@ -3,7 +3,12 @@
 // LayoutAnchorablePane model and have zero UI dependency.
 
 using System.Linq;
+#if AVALONIA
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows.Controls;
+#endif
 
 namespace AvalonDock.Layout
 {

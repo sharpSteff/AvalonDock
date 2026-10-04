@@ -1,6 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+#if AVALONIA
+using Avalonia;
+#else
 using System.Windows;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout
@@ -9,7 +13,11 @@ namespace AvalonDock.Layout
 	/// Provides a base class for layout element.
 	/// </summary>
 	[Serializable]
+#if AVALONIA
+	public abstract class LayoutElement : AvaloniaObject, ILayoutElement, Core.Serialization.ISerializableLayoutElement
+#else
 	public abstract class LayoutElement : DependencyObject, ILayoutElement, Core.Serialization.ISerializableLayoutElement
+#endif
 	{
 		[NonSerialized]
 		private ILayoutContainer _parent = null;
@@ -29,7 +37,11 @@ namespace AvalonDock.Layout
 		/// </summary>
 		[field: NonSerialized]
 		[field: XmlIgnore]
+#if AVALONIA
+		public new event PropertyChangedEventHandler PropertyChanged;
+#else
 		public event PropertyChangedEventHandler PropertyChanged;
+#endif
 
 		/// <summary>
 		/// Occurs when the property changing event is raised.

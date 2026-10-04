@@ -27,7 +27,7 @@ the WPF theme packages (`AvalonDock.Themes.*`) and the WPF serializers are not a
 Reference the project (a NuGet package `Dirkster.AvalonDock.Avalonia` is prepared by the project file):
 
 ```xml
-<ProjectReference Include="..\Components\AvalonDock.Avalonia\AvalonDock.Avalonia.csproj" />
+<ProjectReference Include="..\Components\AvalonDock\AvalonDock.Avalonia.csproj" />
 ```
 
 The library targets `net8.0` and `net10.0` and depends on `Avalonia` 12.1.
@@ -98,6 +98,32 @@ loaded, and `IToolbox.Shortcut` (for example `Ctrl+Alt+T`) becomes a key binding
 button or a title can be dragged onto another zone. See
 [ToggleDockingManager]({{ site.baseurl }}{% link guides/toggle-docking-manager.md %}) for the concepts.
 
+## One code base
+
+`AvalonDock.Avalonia.csproj` sits next to `AvalonDock.csproj` in `source/Components/AvalonDock` and
+compiles the same source files with `AVALONIA` defined:
+
+- Files without platform differences - most of the layout model, the layout engines, the commands and
+  the serialization - are shared as they are.
+- Small differences are kept in the shared file behind `#if AVALONIA`, usually the `using` directives
+  and dependency property registrations.
+- Where a control's Avalonia implementation differs too much to interleave (`DockingManager`, the
+  floating windows, the overlay, ...), it lives next to the WPF file as `Name.Avalonia.cs`.
+  `AvalonDock.Avalonia.csproj` lists the WPF files these replace; `AvalonDock.csproj` skips every
+  `*.Avalonia.cs` file.
+- WPF-only files (Win32 interop, `WindowChrome`, the WPF converters) are removed from the Avalonia
+  build in its project file.
+- The localized resources and the images of the theme are shared; the Avalonia theme is
+  `Themes/Generic.axaml`.
+
+A new file in that folder is compiled by both projects, so a change to shared code is checked by both
+builds. The Avalonia projects are part of `AvalonDock.sln`; `AvalonDock.Avalonia.slnf` selects the ones
+that build without WPF, for building on Linux and macOS:
+
+```bash
+dotnet build source/AvalonDock.Avalonia.slnf
+```
+
 ## Differences from WPF
 
 | WPF | Avalonia |
@@ -137,7 +163,7 @@ docking through the drop targets, the auto-hide flyout and the sidebar buttons o
 `ToggleDockingManager`. They need no display:
 
 ```bash
-dotnet test source/AvalonDock.Avalonia.sln
+dotnet test source/AutomationTest/AvalonDock.Avalonia.Tests
 ```
 
 `source/AutomationTest/AvalonDock.Avalonia.PlatformTests` runs docking scenarios against the real

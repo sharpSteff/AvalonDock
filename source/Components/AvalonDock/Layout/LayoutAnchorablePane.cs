@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+#if !AVALONIA
 using System.Windows.Markup;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout
@@ -8,7 +10,9 @@ namespace AvalonDock.Layout
 	/// <summary>
 	/// Represents a layout anchorable pane.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Children))]
+#endif
 	[Serializable]
 	public class LayoutAnchorablePane : LayoutPositionableGroup<LayoutAnchorable>, ILayoutAnchorablePane, ILayoutPositionableElement, ILayoutContentSelector, ILayoutPaneSerializable, Core.Serialization.ISerializableLayoutPane
 	{

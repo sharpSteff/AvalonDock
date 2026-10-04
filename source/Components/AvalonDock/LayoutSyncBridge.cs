@@ -4,7 +4,11 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+#else
 using System.Windows;
+#endif
 using AvalonDock.Core;
 using AvalonDock.Layout;
 

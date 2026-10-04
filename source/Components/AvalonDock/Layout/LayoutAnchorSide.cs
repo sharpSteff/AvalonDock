@@ -1,5 +1,7 @@
 using System;
+#if !AVALONIA
 using System.Windows.Markup;
+#endif
 
 namespace AvalonDock.Layout
 {
@@ -7,7 +9,9 @@ namespace AvalonDock.Layout
 	/// Implements the viewmodel for a a side element (left, right, top, bottom) in AvalonDock's
 	/// visual root of the <see cref="DockingManager"/>.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Children))]
+#endif
 	[Serializable]
 	public class LayoutAnchorSide : LayoutGroup<LayoutAnchorGroup>
 	{

@@ -1,15 +1,23 @@
 ﻿using System;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
+#endif
 
 namespace AvalonDock.Layout
 {
 	/// <summary>
 	/// Represents a layout panel.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Children))]
+#endif
 	[Serializable]
 	public class LayoutPanel : LayoutPositionableGroup<ILayoutPanelElement>, ILayoutPanelElement, ILayoutOrientableGroup
 	{
@@ -49,9 +57,14 @@ namespace AvalonDock.Layout
 		/// <summary>
 		/// Using a DependencyProperty as the backing store for thhe <see cref="CanDock"/> property.
 		/// </summary>
+#if AVALONIA
+		public static readonly StyledProperty<bool> CanDockProperty =
+			AvaloniaProperty.Register<LayoutPanel, bool>(nameof(CanDock), true);
+#else
 		public static readonly DependencyProperty CanDockProperty =
 			DependencyProperty.Register("CanDock", typeof(bool),
 				typeof(LayoutPanel), new PropertyMetadata(true));
+#endif
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this instance can dock.

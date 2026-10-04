@@ -1,13 +1,20 @@
 ﻿using System;
+#if AVALONIA
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows.Controls;
 using System.Windows.Markup;
+#endif
 
 namespace AvalonDock.Layout
 {
 	/// <summary>
 	/// Represents a layout document pane group.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Children))]
+#endif
 	[Serializable]
 	public class LayoutDocumentPaneGroup : LayoutPositionableGroup<ILayoutDocumentPane>, ILayoutDocumentPane, ILayoutOrientableGroup
 	{

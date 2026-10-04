@@ -1,6 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+#if AVALONIA
+using Avalonia.Layout;
+#else
 using System.Runtime.InteropServices;
+using System.Windows.Controls;
+#endif
 
 namespace AvalonDock.Layout
 {
@@ -101,7 +106,7 @@ namespace AvalonDock.Layout
 				var layoutPanel = parentContainer as LayoutPanel ?? parentContainer.FindParent<LayoutPanel>();
 				if (layoutPanel != null && layoutPanel.Children.Count > 0)
 				{
-					if (layoutPanel.Orientation == System.Windows.Controls.Orientation.Horizontal)
+					if (layoutPanel.Orientation == Orientation.Horizontal)
 						return element.IsInAnchorablePaneAtStartOfPanel(layoutPanel) ? AnchorSide.Left : AnchorSide.Right;
 					return element.IsInAnchorablePaneAtStartOfPanel(layoutPanel) ? AnchorSide.Top : AnchorSide.Bottom;
 				}
@@ -109,6 +114,7 @@ namespace AvalonDock.Layout
 
 			Debug.Fail("Unable to find the side for an element, possible layout problem!");
 			return AnchorSide.Right;
+#if !AVALONIA
 		}
 
 		/// <summary>
@@ -140,6 +146,7 @@ namespace AvalonDock.Layout
 				paneInsideFloatingWindow.FloatingTop = monitorInfo.Work.Top + 10;
 			if (paneInsideFloatingWindow.FloatingTop + paneInsideFloatingWindow.FloatingHeight > monitorInfo.Work.Bottom)
 				paneInsideFloatingWindow.FloatingTop = monitorInfo.Work.Bottom - (paneInsideFloatingWindow.FloatingHeight + 10);
+#endif
 		}
 
 		/// <summary>

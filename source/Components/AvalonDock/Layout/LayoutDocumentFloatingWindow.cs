@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+#if AVALONIA
+using Avalonia.Metadata;
+#else
 using System.Windows.Markup;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout
@@ -10,7 +14,9 @@ namespace AvalonDock.Layout
 	/// <summary>
 	/// Represents a layout document floating window.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(RootPanel))]
+#endif
 	[Serializable]
 	public class LayoutDocumentFloatingWindow : LayoutFloatingWindow, ILayoutElementWithVisibility
 	{
@@ -27,6 +33,9 @@ namespace AvalonDock.Layout
 		/// <summary>
 		/// Gets or sets the root panel.
 		/// </summary>
+#if AVALONIA
+		[Content]
+#endif
 		public LayoutDocumentPaneGroup RootPanel
 		{
 			get => _rootPanel;

@@ -1,8 +1,14 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows;
 using System.Windows.Controls;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout

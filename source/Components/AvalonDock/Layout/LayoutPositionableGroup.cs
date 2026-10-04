@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows;
 using System.Windows.Controls;
+#endif
 
 namespace AvalonDock.Layout
 {
