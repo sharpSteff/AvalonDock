@@ -92,6 +92,10 @@ public abstract class UITestBase
 			var layoutPath = Path.Combine(directory, name + ".layout.json");
 			await File.WriteAllTextAsync(layoutPath, (await Client.InvokeActionAsync("avalondock-layout"))?.ReturnValue ?? string.Empty);
 			TestContext.AddTestAttachment(layoutPath);
+
+			var treePath = Path.Combine(directory, name + ".tree.json");
+			await File.WriteAllTextAsync(treePath, await Http.GetStringAsync("/api/v1/ui/tree"));
+			TestContext.AddTestAttachment(treePath);
 		}
 		catch (Exception ex)
 		{
@@ -326,8 +330,7 @@ public abstract class UITestBase
 			return true;
 		}
 
-		using var content = new StringContent(JsonSerializer.Serialize(new { buttonLabel = button }), System.Text.Encoding.UTF8, "application/json");
-		using var response = await Http.PostAsync("/api/v1/alert/dismiss", content);
+		using var response = await PostMutationAsync("/api/v1/alert/dismiss", new { buttonLabel = button });
 		await SettleAsync();
 		return response.IsSuccessStatusCode;
 	}
@@ -344,16 +347,28 @@ public abstract class UITestBase
 	/// </summary>
 	protected async Task PostActionAsync(string action, object body)
 	{
-		using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/ui/actions/{action}")
+		using var response = await PostMutationAsync($"/api/v1/ui/actions/{action}", body);
+		var text = await response.Content.ReadAsStringAsync();
+		Assert.That(response.IsSuccessStatusCode, Is.True, $"{action} failed: {text}");
+	}
+
+	/// <summary>
+	/// Posts a mutation the driver does not wrap. Like the driver's own mutations it claims the mutation
+	/// lease first - the lease expires when the tests leave the app alone for a while - and sends it along.
+	/// </summary>
+	private async Task<HttpResponseMessage> PostMutationAsync(string path, object body)
+	{
+		var lease = await Client.ControlMutationLeaseAsync("claim");
+		Assert.That(lease?.YouHold, Is.Not.False, $"Claiming the mutation lease failed: {lease?.Error}");
+
+		using var request = new HttpRequestMessage(HttpMethod.Post, path)
 		{
 			// A sized body: the agent's HTTP server does not read chunked request bodies.
 			Content = new StringContent(JsonSerializer.Serialize(body), System.Text.Encoding.UTF8, "application/json"),
 		};
 		request.Headers.Add("X-DevFlow-Lease", Client.MutationLeaseId);
 		request.Headers.Add("X-DevFlow-Holder", Client.MutationLeaseHolderKind);
-		using var response = await Http.SendAsync(request);
-		var text = await response.Content.ReadAsStringAsync();
-		Assert.That(response.IsSuccessStatusCode, Is.True, $"{action} failed: {text}");
+		return await Http.SendAsync(request);
 	}
 
 	protected static ElementInfo? FindDescendant(ElementInfo element, Func<ElementInfo, bool> predicate)
