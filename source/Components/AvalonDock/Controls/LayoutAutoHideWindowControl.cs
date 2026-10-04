@@ -147,7 +147,8 @@ namespace AvalonDock.Controls
 		/// </summary>
 		private static bool HostsContentAsVisualChild { get; } = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-		private bool _presenterIsVisualChild;
+		// Only set by the portable visual hosting path (LIBREWPF_PORTABLE_VISUAL_HOSTING).
+		private bool _presenterIsVisualChild = false;
 
 #if LIBREWPF_PORTABLE_VISUAL_HOSTING
 		/// <summary>
@@ -158,8 +159,8 @@ namespace AvalonDock.Controls
 		/// <c>HwndHost.UsesPortableVisualHosting</c> is not in a published LibreWPF.Sdk yet (the newest,
 		/// 0.1.0-preview.65, lacks it), and WPF on Windows never had it. Set the MSBuild property
 		/// <c>LibreWpfPortableVisualHosting</c> to <c>true</c> once global.json moves to a LibreWPF.Sdk
-		/// that has it; until then the auto-hide host uses the visual-child path in
-		/// <see cref="BuildWindowCore"/>.
+		/// that has it; until then the portable HwndHost builds the child window through
+		/// <see cref="BuildWindowCore"/> and hosts its root visual itself.
 		/// </remarks>
 		protected override bool UsesPortableVisualHosting => HostsContentAsVisualChild;
 #endif
@@ -261,23 +262,9 @@ namespace AvalonDock.Controls
 			});
 			AutomationProperties.SetName(_internalHostPresenter, "InternalWindowHost");
 
-#if LIBREWPF_PORTABLE_VISUAL_HOSTING
+			// On a portable presentation source (LibreWPF.Sdk 0.1.0-preview.65), HwndHost takes this
+			// root visual over as its own visual child once BuildWindowCore returns.
 			_internalHwndSource.RootVisual = _internalHostPresenter;
-#else
-			if (HostsContentAsVisualChild)
-			{
-				// Leave the child window empty and render the content through the WPF visual tree.
-				if (!_presenterIsVisualChild)
-				{
-					AddVisualChild(_internalHostPresenter);
-					_presenterIsVisualChild = true;
-				}
-			}
-			else
-			{
-				_internalHwndSource.RootVisual = _internalHostPresenter;
-			}
-#endif
 
 			AddLogicalChild(_internalHostPresenter);
 			Win32Helper.BringWindowToTop(_internalHwndSource.Handle);

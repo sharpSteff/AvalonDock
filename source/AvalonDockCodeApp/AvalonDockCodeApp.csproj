@@ -9,7 +9,8 @@
         <RootNamespace>ToggleTestApp</RootNamespace>
         <!-- No net48: the app uses .NET APIs that .NET Framework lacks (ranges, StringSplitOptions.TrimEntries,
              OperatingSystem.IsWindows, Microsoft.Win32.OpenFolderDialog). -->
-        <TargetFrameworks>$(TestTargetFrameworks.Replace(';net48', ''))</TargetFrameworks>
+        <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net9.0-windows;net10.0-windows</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <ApplicationIcon />
         <OutputType>WinExe</OutputType>
