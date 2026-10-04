@@ -7,7 +7,9 @@
     <Import Project="Sdk.props" Sdk="LibreWPF.Sdk" Condition="'$(OS)' != 'Windows_NT'" />
     <PropertyGroup>
         <RootNamespace>ToggleTestApp</RootNamespace>
-        <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+        <!-- No net48: the app uses .NET APIs that .NET Framework lacks (ranges, StringSplitOptions.TrimEntries,
+             OperatingSystem.IsWindows, Microsoft.Win32.OpenFolderDialog). -->
+        <TargetFrameworks>$(TestTargetFrameworks.Replace(';net48', ''))</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <ApplicationIcon />
         <OutputType>WinExe</OutputType>
