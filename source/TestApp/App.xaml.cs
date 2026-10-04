@@ -5,6 +5,9 @@ using Avalonia.Markup.Xaml;
 #else
 using System.Windows;
 #endif
+#if DEVFLOW_AGENT
+using AvalonDock.UITests.Agent;
+#endif
 
 namespace TestApp
 {
@@ -28,6 +31,16 @@ namespace TestApp
                 desktop.MainWindow = new MainWindow();
 
             base.OnFrameworkInitializationCompleted();
+#if DEVFLOW_AGENT
+            DevFlowAgent.StartIfRequested(this);
+#endif
+        }
+#elif DEVFLOW_AGENT
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            DevFlowAgent.StartIfRequested(this);
         }
 #endif
     }

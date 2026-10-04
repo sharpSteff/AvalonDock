@@ -22,6 +22,9 @@ on:
       - 'source/AvalonDock.sln'
       - 'source/AvalonDock.Avalonia.slnf'
       - 'source/Directory.Build.*'
+      - 'source/AutomationTest/AvalonDock.UITests/**'
+      - 'source/AutomationTest/DevFlow/**'
+      - 'external/ui-labs'
       - '.github/workflows/avalonia.yml'
   push:
     paths:
@@ -40,6 +43,9 @@ on:
       - 'source/AvalonDock.sln'
       - 'source/AvalonDock.Avalonia.slnf'
       - 'source/Directory.Build.*'
+      - 'source/AutomationTest/AvalonDock.UITests/**'
+      - 'source/AutomationTest/DevFlow/**'
+      - 'external/ui-labs'
       - '.github/workflows/avalonia.yml'
   workflow_dispatch:
 
@@ -58,6 +64,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # external/ui-labs: the DevFlow agent and driver the UI tests use.
+          submodules: recursive
 
       # The library targets net8.0 and net10.0; the tests, the platform runner and the sample run on net10.0.
       - name: Setup .NET
@@ -107,6 +116,19 @@ jobs:
       - name: Platform tests (Windows, macOS)
         if: runner.os != 'Linux'
         run: dotnet source/AutomationTest/AvalonDock.Avalonia.PlatformTests/bin/Release/net10.0/AvalonDock.Avalonia.PlatformTests.dll --expect-transparent-overlay --screenshots TestResults/platform/${{ runner.os }}
+
+      # The DevFlow UI tests against the Avalonia builds of the demo applications - the same tests ci.yml
+      # runs against the WPF builds. On Linux they use the X server and window manager started above.
+      - name: UI tests (Avalonia)
+        env:
+          AVALONDOCK_UI: avalonia
+          DISPLAY: ':99'
+        run: >
+          dotnet test source/AutomationTest/AvalonDock.UITests/AvalonDock.UITests.csproj
+          --configuration Release
+          --no-build
+          --logger "trx;LogFileName=ui-avalonia.trx"
+          --results-directory TestResults/ui
 
       - name: Upload test results
         uses: actions/upload-artifact@v7

@@ -1,0 +1,4 @@
+[submodule "external/ui-labs"]
+	path = external/ui-labs
+	url = https://github.com/sharpSteff/ui-labs
+	branch = devflow-agent-avalonia

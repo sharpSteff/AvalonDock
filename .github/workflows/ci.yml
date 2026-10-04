@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # external/ui-labs: the DevFlow agent and driver the UI tests use.
+          submodules: recursive
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -34,7 +37,7 @@ jobs:
           dotnet test source/AvalonDock.sln
           --configuration Release
           --no-restore
-          --filter "Category!=FlaUI"
+          --filter "Category!=FlaUI&Category!=UI"
           --logger "trx;LogFilePrefix=unit-test-results"
           --results-directory TestResults
           -m:1
@@ -51,6 +54,18 @@ jobs:
           --logger "trx;LogFilePrefix=flaui-test-results"
           --results-directory TestResults
           -m:1
+
+      # The DevFlow UI tests against the WPF builds of the demo applications. avalonia.yml runs the same
+      # tests against the Avalonia builds on Windows, macOS and Linux.
+      - name: Test (UI Tests, WPF)
+        env:
+          AVALONDOCK_UI: wpf
+        run: >
+          dotnet test source/AutomationTest/AvalonDock.UITests/AvalonDock.UITests.csproj
+          --configuration Release
+          --no-build
+          --logger "trx;LogFilePrefix=ui-test-results-wpf"
+          --results-directory TestResults
 
       - name: Upload test results
         uses: actions/upload-artifact@v7

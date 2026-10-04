@@ -4,6 +4,7 @@
     "projects": [
       "AutomationTest\\AvalonDock.Avalonia.PlatformTests\\AvalonDock.Avalonia.PlatformTests.csproj",
       "AutomationTest\\AvalonDock.Avalonia.Tests\\AvalonDock.Avalonia.Tests.csproj",
+      "AutomationTest\\AvalonDock.UITests\\AvalonDock.UITests.csproj",
       "AvalonDockAvaloniaApp\\AvalonDockAvaloniaApp.csproj",
       "AvalonDockCodeApp\\AvalonDockCodeApp.Avalonia.csproj",
       "Components\\AvalonDock.Core\\AvalonDock.Core.csproj",

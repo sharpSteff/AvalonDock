@@ -61,5 +61,7 @@
 		<Compile Remove="ViewModels\FileIconHelper.cs;ViewModels\ToolboxIcons.cs" />
 	</ItemGroup>
 
+	<Import Project="..\AutomationTest\DevFlow\DevFlowAgent.props" />
+
 	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

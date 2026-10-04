@@ -51,5 +51,7 @@
 		<AvaloniaResource Include="Images\*.png" />
 	</ItemGroup>
 
+	<Import Project="..\AutomationTest\DevFlow\DevFlowAgent.props" />
+
 	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

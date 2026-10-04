@@ -19,6 +19,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # external/ui-labs: the DevFlow agent and driver the UI tests use.
+          submodules: recursive
 
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v6
@@ -68,7 +70,7 @@ jobs:
           dotnet test source/AvalonDock.sln
           --configuration Release
           --no-restore
-          --filter "Category!=FlaUI"
+          --filter "Category!=FlaUI&Category!=UI"
           --logger "trx;LogFilePrefix=unit-test-results"
           --results-directory TestResults
           -m:1

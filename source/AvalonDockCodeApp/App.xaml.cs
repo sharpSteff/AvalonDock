@@ -16,6 +16,9 @@ using ToggleTestApp.ViewModels;
 #if AVALONIA
 using ToggleTestApp.Views;
 #endif
+#if DEVFLOW_AGENT
+using AvalonDock.UITests.Agent;
+#endif
 
 namespace ToggleTestApp;
 
@@ -40,6 +43,9 @@ public partial class App : Application
 		}
 
 		base.OnFrameworkInitializationCompleted();
+#if DEVFLOW_AGENT
+		DevFlowAgent.StartIfRequested(this);
+#endif
 	}
 
 	/// <summary>
@@ -66,6 +72,9 @@ public partial class App : Application
 
 		var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
 		mainWindow.Show();
+#if DEVFLOW_AGENT
+		DevFlowAgent.StartIfRequested(this);
+#endif
 	}
 #endif
 

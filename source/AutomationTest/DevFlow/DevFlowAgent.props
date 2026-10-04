@@ -1,0 +1,29 @@
+<Project>
+	<!-- Embeds the DevFlow agent that the UI tests (AvalonDock.UITests) drive into a demo application.
+	     Import it from the demo's project file. The agent comes from the ui-labs submodule
+	     (external/ui-labs) and needs .NET 10, so the other target frameworks build without it. The
+	     agent only starts when DEVFLOW_AGENT_PORT is set; see DevFlowAgent.cs. -->
+	<PropertyGroup>
+		<DevFlowSourceDir>$(MSBuildThisFileDirectory)..\..\..\external\ui-labs\src\DevFlow\</DevFlowSourceDir>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' != '' and '$(EmbedDevFlowAgent)' == '' and Exists('$(DevFlowSourceDir)LeXtudio.DevFlow.Agent.Core')">
+		<EmbedDevFlowAgent Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">true</EmbedDevFlowAgent>
+	</PropertyGroup>
+	<PropertyGroup>
+		<DefineConstants Condition="'$(EmbedDevFlowAgent)' == 'true'">$(DefineConstants);DEVFLOW_AGENT</DefineConstants>
+	</PropertyGroup>
+
+	<!-- ui-labs keeps its own code-style rules, so its projects build without AvalonDock's warnings-as-errors
+	     gate (which dotnet build \-\-warnaserror would otherwise apply to them). -->
+	<PropertyGroup>
+		<DevFlowProjectProperties>WarningLevel=0;RunAnalyzers=false;TreatWarningsAsErrors=false;DisableGitVersionTask=true</DevFlowProjectProperties>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(EmbedDevFlowAgent)' == 'true'">
+		<Compile Include="$(MSBuildThisFileDirectory)DevFlowAgent.cs" Link="DevFlowAgent.cs" />
+		<!-- Referenced directly as well, so the transitive reference gets the same properties. -->
+		<ProjectReference Include="$(DevFlowSourceDir)LeXtudio.DevFlow.Agent.Core\LeXtudio.DevFlow.Agent.Core.csproj" AdditionalProperties="$(DevFlowProjectProperties)" />
+		<ProjectReference Condition="'$(UseWPF)' == 'true'" Include="$(DevFlowSourceDir)LeXtudio.DevFlow.Agent.Wpf\LeXtudio.DevFlow.Agent.Wpf.csproj" AdditionalProperties="$(DevFlowProjectProperties)" />
+		<ProjectReference Condition="'$(UseWPF)' != 'true'" Include="$(DevFlowSourceDir)LeXtudio.DevFlow.Agent.Avalonia\LeXtudio.DevFlow.Agent.Avalonia.csproj" AdditionalProperties="$(DevFlowProjectProperties)" />
+	</ItemGroup>
+</Project>
