@@ -54,6 +54,7 @@ namespace AvalonDock.Controls
 		{
 			_sizeChangedHandler = ViewboxZoomChanged;
 
+#if LIBREWPF_PORTABLE_VISUAL_HOSTING
 			// A portable visual-only HwndHost does not call BuildWindowCore.  It must
 			// therefore own its presenter before HwndHost attaches it to the portable
 			// presentation source.
@@ -64,6 +65,7 @@ namespace AvalonDock.Controls
 				AddLogicalChild(_internalHostPresenter);
 				_presenterIsVisualChild = true;
 			}
+#endif
 		}
 
 		/// <summary>
@@ -147,11 +149,20 @@ namespace AvalonDock.Controls
 
 		private bool _presenterIsVisualChild;
 
+#if LIBREWPF_PORTABLE_VISUAL_HOSTING
 		/// <summary>
 		/// Uses the derived control's ordinary visual tree for a portable presentation source.
 		/// Native Windows presentation sources continue to use the child HWND path below.
 		/// </summary>
+		/// <remarks>
+		/// <c>HwndHost.UsesPortableVisualHosting</c> is not in a published LibreWPF.Sdk yet (the newest,
+		/// 0.1.0-preview.65, lacks it), and WPF on Windows never had it. Set the MSBuild property
+		/// <c>LibreWpfPortableVisualHosting</c> to <c>true</c> once global.json moves to a LibreWPF.Sdk
+		/// that has it; until then the auto-hide host uses the visual-child path in
+		/// <see cref="BuildWindowCore"/>.
+		/// </remarks>
 		protected override bool UsesPortableVisualHosting => HostsContentAsVisualChild;
+#endif
 
 		/// <summary>
 		/// Shows the control.
@@ -250,7 +261,23 @@ namespace AvalonDock.Controls
 			});
 			AutomationProperties.SetName(_internalHostPresenter, "InternalWindowHost");
 
+#if LIBREWPF_PORTABLE_VISUAL_HOSTING
 			_internalHwndSource.RootVisual = _internalHostPresenter;
+#else
+			if (HostsContentAsVisualChild)
+			{
+				// Leave the child window empty and render the content through the WPF visual tree.
+				if (!_presenterIsVisualChild)
+				{
+					AddVisualChild(_internalHostPresenter);
+					_presenterIsVisualChild = true;
+				}
+			}
+			else
+			{
+				_internalHwndSource.RootVisual = _internalHostPresenter;
+			}
+#endif
 
 			AddLogicalChild(_internalHostPresenter);
 			Win32Helper.BringWindowToTop(_internalHwndSource.Handle);

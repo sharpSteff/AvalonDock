@@ -17,6 +17,10 @@
 		     component projects). Code that touches ProGPU-only API must sit behind this, because those
 		     types do not exist in the upstream WPF build. -->
 		<DefineConstants Condition="'$(OS)' != 'Windows_NT'">$(DefineConstants);LIBREWPF</DefineConstants>
+		<!-- HwndHost.UsesPortableVisualHosting, which LayoutAutoHideWindowControl overrides, is not in a
+		     published LibreWPF.Sdk yet. Set this to true once global.json references one that has it. -->
+		<LibreWpfPortableVisualHosting Condition="'$(LibreWpfPortableVisualHosting)' == ''">false</LibreWpfPortableVisualHosting>
+		<DefineConstants Condition="'$(OS)' != 'Windows_NT' And '$(LibreWpfPortableVisualHosting)' == 'true'">$(DefineConstants);LIBREWPF_PORTABLE_VISUAL_HOSTING</DefineConstants>
 
 		<!-- Version Information -->
 		<VersionPrefix>5.0.1</VersionPrefix>
