@@ -1,0 +1,321 @@
+<!--
+	Avalonia port of source/AvalonDockCodeApp/MainWindow.xaml. Window title, menu headers and texts are the same
+	as in the WPF application, so the same UI tests can drive both.
+-->
+<Window
+	x:Class="ToggleTestApp.MainWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ad="https://github.com/Dirkster99/AvalonDock"
+	xmlns:views="clr-namespace:ToggleTestApp.Views"
+	Title="AvalonDock Code — Toggle Docking Demo"
+	Width="1100"
+	Height="700"
+	Background="{Binding Background, ElementName=dockManager}"
+	UseLayoutRounding="True"
+	WindowStartupLocation="CenterScreen">
+	<Window.Resources>
+		<!--  Document header template (tab header with icon + title)  -->
+		<DataTemplate x:Key="DocumentTabHeaderTemplate">
+			<StackPanel Orientation="Horizontal">
+				<Image
+					Width="14"
+					Height="14"
+					Margin="0,0,5,0"
+					VerticalAlignment="Center"
+					IsVisible="{Binding IconSource, Converter={x:Static ObjectConverters.IsNotNull}}"
+					Source="{Binding IconSource}" />
+				<TextBlock
+					VerticalAlignment="Center"
+					Text="{Binding Title}"
+					TextTrimming="CharacterEllipsis" />
+			</StackPanel>
+		</DataTemplate>
+
+		<!--  LayoutItem style selector: different styles for toolboxes vs documents  -->
+		<views:PanesStyleSelector x:Key="PanesStyleSelector">
+			<views:PanesStyleSelector.ToolboxStyle>
+				<ControlTheme TargetType="ad:LayoutAnchorableItem">
+					<Setter Property="Title" Value="{Binding Model.Title}" />
+					<Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+					<Setter Property="ClipToBounds" Value="True" />
+				</ControlTheme>
+			</views:PanesStyleSelector.ToolboxStyle>
+			<views:PanesStyleSelector.DocumentStyle>
+				<ControlTheme TargetType="ad:LayoutDocumentItem">
+					<Setter Property="Title" Value="{Binding Model.Title}" />
+					<Setter Property="ToolTip.Tip" Value="{Binding Model.ToolTip}" />
+					<Setter Property="IconSource" Value="{Binding Model.IconSource}" />
+					<Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+				</ControlTheme>
+			</views:PanesStyleSelector.DocumentStyle>
+		</views:PanesStyleSelector>
+
+		<ControlTheme x:Key="LayoutToggleButton" TargetType="ToggleButton">
+			<Setter Property="Width" Value="26" />
+			<Setter Property="Height" Value="22" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="Margin" Value="1,0" />
+			<Setter Property="Padding" Value="4,3" />
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Border
+						Padding="{TemplateBinding Padding}"
+						Background="{TemplateBinding Background}"
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="{TemplateBinding BorderThickness}"
+						CornerRadius="3">
+						<ContentPresenter
+							Name="PART_ContentPresenter"
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Content="{TemplateBinding Content}" />
+					</Border>
+				</ControlTemplate>
+			</Setter>
+			<Style Selector="^:checked">
+				<Setter Property="Background" Value="#20808080" />
+			</Style>
+			<Style Selector="^:pointerover">
+				<Setter Property="Background" Value="#30808080" />
+			</Style>
+		</ControlTheme>
+	</Window.Resources>
+
+	<Grid RowDefinitions="Auto,*,Auto">
+		<!--  Title bar / Menu  -->
+		<Grid
+			Grid.Row="0"
+			Background="{Binding Background, ElementName=dockManager}"
+			ColumnDefinitions="Auto,*,Auto">
+			<Menu
+				Grid.Column="0"
+				Padding="4,4"
+				Background="Transparent">
+				<MenuItem Header="_File">
+					<MenuItem Command="{Binding OpenFolderCommand}" Header="_Open Folder..." />
+					<Separator />
+					<MenuItem Click="OnExit" Header="E_xit" />
+				</MenuItem>
+				<MenuItem Header="_Layout">
+					<MenuItem Click="OnSaveLayout" Header="Save Layout" />
+					<MenuItem Click="OnLoadLayout" Header="Load Layout" />
+					<Separator />
+					<!--
+						Loads a copy of the saved layout carrying one extra tool window that no toolbox answers to,
+						which is what a layout stored by an older version of an application looks like once a toolbox
+						has been dropped from it.
+					-->
+					<MenuItem Click="OnLoadLayoutWithUnknownToolbox" Header="Load Layout With Unknown Toolbox" />
+				</MenuItem>
+				<MenuItem Header="_View">
+					<MenuItem Header="Layout Priority">
+						<MenuItem
+							x:Name="menuBottomFullWidth"
+							Click="OnLayoutPriorityChanged"
+							Header="Bottom Full Width (Rider)"
+							IsChecked="True"
+							ToggleType="CheckBox" />
+						<MenuItem
+							x:Name="menuSidesFullHeight"
+							Click="OnLayoutPriorityChanged"
+							Header="Sides Full Height (VSCode)"
+							ToggleType="CheckBox" />
+						<MenuItem
+							x:Name="menuDefaultPriority"
+							Click="OnLayoutPriorityChanged"
+							Header="Default (No Restructuring)"
+							ToggleType="CheckBox" />
+					</MenuItem>
+					<Separator />
+					<!--  The WPF themes (Arc, VS2015) have not been ported; the default theme comes in a dark and a light variant.  -->
+					<MenuItem Header="Theme">
+						<MenuItem
+							x:Name="menuDark"
+							Click="OnThemeChanged"
+							Header="Dark"
+							IsChecked="True"
+							ToggleType="CheckBox" />
+						<MenuItem
+							x:Name="menuLight"
+							Click="OnThemeChanged"
+							Header="Light"
+							ToggleType="CheckBox" />
+					</MenuItem>
+				</MenuItem>
+			</Menu>
+			<TextBlock
+				Grid.Column="1"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				FontSize="12"
+				Foreground="{DynamicResource AppSubText}"
+				Text="AvalonDock Code — Toggle Docking Demo" />
+
+			<!--  Layout toggle buttons (VS Code style)  -->
+			<StackPanel
+				Grid.Column="2"
+				Margin="0,0,8,0"
+				VerticalAlignment="Center"
+				Orientation="Horizontal">
+				<!--  Toggle Primary Side Bar (Left)  -->
+				<ToggleButton
+					Command="{Binding TogglePrimarySideBarCommand}"
+					IsChecked="{Binding IsPrimarySideBarOpen, Mode=OneWay}"
+					Theme="{StaticResource LayoutToggleButton}"
+					ToolTip.Tip="Toggle Primary Side Bar">
+					<Viewbox Width="14" Height="14">
+						<Canvas Width="16" Height="16">
+							<Rectangle
+								Canvas.Left="0.5"
+								Canvas.Top="1.5"
+								Width="15"
+								Height="13"
+								Fill="Transparent"
+								RadiusX="1"
+								RadiusY="1"
+								Stroke="{DynamicResource AppSubText}"
+								StrokeThickness="1" />
+							<Rectangle
+								Canvas.Left="1.5"
+								Canvas.Top="2.5"
+								Width="4.5"
+								Height="11"
+								Fill="{DynamicResource AppSubText}"
+								Opacity="0.4" />
+						</Canvas>
+					</Viewbox>
+				</ToggleButton>
+
+				<!--  Toggle Panel (Bottom)  -->
+				<ToggleButton
+					Command="{Binding ToggleBottomPanelCommand}"
+					IsChecked="{Binding IsBottomPanelOpen, Mode=OneWay}"
+					Theme="{StaticResource LayoutToggleButton}"
+					ToolTip.Tip="Toggle Panel">
+					<Viewbox Width="14" Height="14">
+						<Canvas Width="16" Height="16">
+							<Rectangle
+								Canvas.Left="0.5"
+								Canvas.Top="1.5"
+								Width="15"
+								Height="13"
+								Fill="Transparent"
+								RadiusX="1"
+								RadiusY="1"
+								Stroke="{DynamicResource AppSubText}"
+								StrokeThickness="1" />
+							<Rectangle
+								Canvas.Left="1.5"
+								Canvas.Top="9"
+								Width="13"
+								Height="4.5"
+								Fill="{DynamicResource AppSubText}"
+								Opacity="0.4" />
+						</Canvas>
+					</Viewbox>
+				</ToggleButton>
+
+				<!--  Toggle Secondary Side Bar (Right)  -->
+				<ToggleButton
+					Command="{Binding ToggleSecondarySideBarCommand}"
+					IsChecked="{Binding IsSecondarySideBarOpen, Mode=OneWay}"
+					Theme="{StaticResource LayoutToggleButton}"
+					ToolTip.Tip="Toggle Secondary Side Bar">
+					<Viewbox Width="14" Height="14">
+						<Canvas Width="16" Height="16">
+							<Rectangle
+								Canvas.Left="0.5"
+								Canvas.Top="1.5"
+								Width="15"
+								Height="13"
+								Fill="Transparent"
+								RadiusX="1"
+								RadiusY="1"
+								Stroke="{DynamicResource AppSubText}"
+								StrokeThickness="1" />
+							<Rectangle
+								Canvas.Left="10"
+								Canvas.Top="2.5"
+								Width="4.5"
+								Height="11"
+								Fill="{DynamicResource AppSubText}"
+								Opacity="0.4" />
+						</Canvas>
+					</Viewbox>
+				</ToggleButton>
+			</StackPanel>
+		</Grid>
+
+		<!--  Dock Manager  -->
+		<ad:ToggleDockingManager
+			x:Name="dockManager"
+			Grid.Row="1"
+			BorderThickness="0"
+			DockLayout="{Binding DockLayout}"
+			DocumentHeaderTemplate="{StaticResource DocumentTabHeaderTemplate}"
+			LayoutItemContainerStyleSelector="{StaticResource PanesStyleSelector}">
+			<ad:LayoutRoot>
+				<ad:LayoutPanel Orientation="Horizontal">
+					<ad:LayoutDocumentPaneGroup>
+						<ad:LayoutDocumentPane>
+							<ad:LayoutDocument Title="Welcome" ContentId="welcome">
+								<Border Padding="40" Background="{DynamicResource AppEditorBg}">
+									<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+										<TextBlock
+											HorizontalAlignment="Center"
+											FontSize="28"
+											FontWeight="Light"
+											Foreground="{DynamicResource AppText}"
+											Text="AvalonDock Code" />
+										<TextBlock
+											Margin="0,8,0,24"
+											HorizontalAlignment="Center"
+											FontSize="14"
+											Foreground="{DynamicResource AppSubText}"
+											Text="Toggle Docking Demo — v5.0.0" />
+										<TextBlock
+											FontSize="13"
+											Foreground="{DynamicResource AppSubText}"
+											LineHeight="24"
+											TextAlignment="Center">
+											<Run Text="Click sidebar icons to toggle panels" /><LineBreak />
+											<Run Text="Drag buttons between zones to rearrange" /><LineBreak />
+											<Run Text="Double-click files in Explorer to open" />
+										</TextBlock>
+										<TextBlock
+											Margin="0,24,0,0"
+											FontSize="11"
+											Foreground="{DynamicResource AppDimText}"
+											Text="Powered by AvalonDock + AvalonDock.Mvvm + AvalonDock-DependencyInjection"
+											TextAlignment="Center" />
+									</StackPanel>
+								</Border>
+							</ad:LayoutDocument>
+						</ad:LayoutDocumentPane>
+					</ad:LayoutDocumentPaneGroup>
+				</ad:LayoutPanel>
+			</ad:LayoutRoot>
+		</ad:ToggleDockingManager>
+
+		<!--  Status bar  -->
+		<Border
+			Grid.Row="2"
+			Padding="8,4"
+			Background="{Binding Background, ElementName=dockManager}">
+			<Grid>
+				<TextBlock
+					FontSize="11"
+					Foreground="{DynamicResource AppSubText}"
+					Text="Ready" />
+				<TextBlock
+					HorizontalAlignment="Right"
+					FontSize="11"
+					Foreground="{DynamicResource AppSubText}"
+					Text="AvalonDock v5.0.0 • ToggleDockingManager • MVVM + DI" />
+			</Grid>
+		</Border>
+	</Grid>
+</Window>

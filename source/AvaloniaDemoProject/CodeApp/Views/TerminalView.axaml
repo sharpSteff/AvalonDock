@@ -1,0 +1,51 @@
+<UserControl
+	x:Class="ToggleTestApp.Views.TerminalView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Background="{DynamicResource AppEditorBg}">
+	<UserControl.Styles>
+		<!--  Fluent paints a focused or hovered text box; the input line stays part of the terminal.  -->
+		<Style Selector="TextBox#InputBox:focus /template/ Border#PART_BorderElement, TextBox#InputBox:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+		</Style>
+	</UserControl.Styles>
+	<Grid RowDefinitions="*,Auto">
+		<ScrollViewer
+			x:Name="OutputScroller"
+			Grid.Row="0"
+			HorizontalScrollBarVisibility="Auto"
+			VerticalScrollBarVisibility="Auto">
+			<TextBlock
+				Padding="8"
+				FontFamily="Cascadia Mono,Consolas,Courier New,monospace"
+				FontSize="12"
+				Foreground="{DynamicResource AppText}"
+				Text="{Binding Output}"
+				TextWrapping="Wrap" />
+		</ScrollViewer>
+
+		<Grid Grid.Row="1" Background="{DynamicResource AppInputBarBg}" ColumnDefinitions="Auto,*">
+			<TextBlock
+				Grid.Column="0"
+				Margin="8,4"
+				VerticalAlignment="Center"
+				FontFamily="Cascadia Mono,Consolas,monospace"
+				FontSize="13"
+				Foreground="#007ACC"
+				Text="❯" />
+
+			<TextBox
+				x:Name="InputBox"
+				Grid.Column="1"
+				Padding="0,4"
+				Background="Transparent"
+				BorderThickness="0"
+				CaretBrush="{DynamicResource AppText}"
+				FontFamily="Cascadia Mono,Consolas,Courier New,monospace"
+				FontSize="12"
+				Foreground="{DynamicResource AppText}"
+				Text="{Binding InputCommand}" />
+		</Grid>
+	</Grid>
+</UserControl>

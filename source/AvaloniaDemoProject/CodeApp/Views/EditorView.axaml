@@ -1,0 +1,32 @@
+<UserControl
+	x:Class="ToggleTestApp.Views.EditorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:avalonedit="https://github.com/avaloniaui/avaloniaedit"
+	Background="{DynamicResource AppEditorBg}">
+	<Grid RowDefinitions="Auto,*">
+		<!--  File path bar  -->
+		<Border Grid.Row="0" Padding="8,4" Background="{DynamicResource AppPanelBg}">
+			<TextBlock
+				FontFamily="Cascadia Mono,Consolas,monospace"
+				FontSize="11"
+				Foreground="{DynamicResource AppSubText}"
+				Text="{Binding FilePath}"
+				TextTrimming="CharacterEllipsis" />
+		</Border>
+
+		<avalonedit:TextEditor
+			x:Name="Editor"
+			Grid.Row="1"
+			Padding="4"
+			Background="{DynamicResource AppEditorBg}"
+			FontFamily="Consolas,Courier New,monospace"
+			FontSize="13"
+			Foreground="{DynamicResource AppEditorText}"
+			HorizontalScrollBarVisibility="Auto"
+			IsReadOnly="True"
+			LineNumbersForeground="{DynamicResource AppLineNumbers}"
+			ShowLineNumbers="True"
+			VerticalScrollBarVisibility="Auto" />
+	</Grid>
+</UserControl>

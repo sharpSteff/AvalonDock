@@ -4,7 +4,11 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+#if AVALONIA
+using Dispatcher = ToggleTestApp.ViewModels.UiDispatcher;
+#else
 using System.Windows.Threading;
+#endif
 using AvalonDock.Core;
 using AvalonDock.Mvvm.CommunityToolkit;
 using CommunityToolkit.Mvvm.ComponentModel;

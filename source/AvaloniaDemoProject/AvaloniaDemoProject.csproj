@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+		Avalonia counterpart of the two WPF demo applications:
+		  TestApp             (default)          - the classic DockingManager test application
+		  AvalonDockCodeApp   (arguments: app code) - the ToggleDockingManager / MVVM / DI demo
+		The view models, images and docking libraries of those applications are reused rather than copied:
+		the CodeApp view models are compiled in from ..\AvalonDockCodeApp with AVALONIA defined, and the
+		few places that differ live in CodeApp\Compat and CodeApp\ViewModels.
+	-->
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>AvaloniaDemoProject</RootNamespace>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<IsPackable>false</IsPackable>
+		<DefineConstants>$(DefineConstants);AVALONIA</DefineConstants>
+		<AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<!-- Like the WPF demo applications: sample code, warnings are not errors and no XML documentation file. -->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<NoWarn>$(NoWarn);SA0001</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+		<PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Components\AvalonDock.Avalonia\AvalonDock.Avalonia.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock.Core\AvalonDock.Core.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock.Mvvm\AvalonDock.Mvvm.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock.Mvvm.CommunityToolkit\AvalonDock.Mvvm.CommunityToolkit.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock.DependencyInjection\AvalonDock.DependencyInjection.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock.Serializer.Xml\AvalonDock.Serializer.Xml.csproj" />
+	</ItemGroup>
+
+	<!-- The AvalonDockCodeApp view models, shared with the WPF application. -->
+	<ItemGroup>
+		<Compile Include="..\AvalonDockCodeApp\ViewModels\*.cs"
+		         Exclude="..\AvalonDockCodeApp\ViewModels\FileIconHelper.cs;..\AvalonDockCodeApp\ViewModels\ToolboxIcons.cs"
+		         Link="CodeApp\ViewModels\Shared\%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<!-- The TestApp images, shared with the WPF application. -->
+	<ItemGroup>
+		<AvaloniaResource Include="..\TestApp\Images\*.png" Link="TestApp\Images\%(Filename)%(Extension)" />
+	</ItemGroup>
+
+</Project>

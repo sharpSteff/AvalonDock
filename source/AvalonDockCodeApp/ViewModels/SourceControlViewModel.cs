@@ -4,7 +4,11 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if AVALONIA
+using Dispatcher = ToggleTestApp.ViewModels.UiDispatcher;
+#else
 using System.Windows.Threading;
+#endif
 using AvalonDock.Core;
 using AvalonDock.Mvvm.CommunityToolkit;
 using CommunityToolkit.Mvvm.ComponentModel;

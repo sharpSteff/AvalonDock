@@ -1,0 +1,170 @@
+<!--
+	Avalonia port of source/TestApp/MainWindow.xaml. Window title, menu headers, tool window titles, content ids
+	and texts are the same as in the WPF application, so the same UI tests can drive both.
+-->
+<Window
+	x:Class="TestApp.MainWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ad="https://github.com/Dirkster99/AvalonDock"
+	xmlns:local="clr-namespace:TestApp"
+	Title="MainWindow"
+	Width="800"
+	Height="600"
+	Background="{Binding Background, ElementName=dockManager}"
+	UseLayoutRounding="True">
+	<Grid x:Name="layoutRoot" RowDefinitions="Auto,*">
+		<Menu x:Name="mainMenu" Grid.Row="0">
+			<MenuItem Header="Edit">
+				<MenuItem Click="OnUndo" Header="Undo" InputGesture="Ctrl+Z" />
+				<MenuItem Click="OnRedo" Header="Redo" InputGesture="Ctrl+Y" />
+				<Separator />
+				<MenuItem Click="OnCut" Header="Cut" InputGesture="Ctrl+X" />
+				<MenuItem Click="OnCopy" Header="Copy" InputGesture="Ctrl+C" />
+				<MenuItem Click="OnPaste" Header="Paste" InputGesture="Ctrl+V" />
+			</MenuItem>
+			<MenuItem Header="Layout">
+				<MenuItem Header="Save">
+					<MenuItem Click="OnSaveLayout" Header="Layout_1" />
+					<MenuItem Click="OnSaveLayout" Header="Layout_2" />
+					<MenuItem Click="OnSaveLayout" Header="Layout_3" />
+					<MenuItem Click="OnSaveLayout" Header="Layout_4" />
+				</MenuItem>
+				<MenuItem Header="Load">
+					<MenuItem Click="OnLoadLayout" Header="Layout_1" />
+					<MenuItem Click="OnLoadLayout" Header="Layout_2" />
+					<MenuItem Click="OnLoadLayout" Header="Layout_3" />
+					<MenuItem Click="OnLoadLayout" Header="Layout_4" />
+				</MenuItem>
+				<MenuItem Click="OnDumpToConsole" Header="Dump To Console" />
+				<MenuItem Click="OnUnloadManager" Header="Unload Manager" />
+				<MenuItem Click="OnLoadManager" Header="Load Manager" />
+				<MenuItem Click="OnShowHeader" Header="Show header" />
+			</MenuItem>
+			<MenuItem Header="Tools">
+				<MenuItem Click="OnShowWinformsWindow" Header="WinForms Window" />
+				<MenuItem Click="OnShowToolWindow1" Header="Tool Window1" />
+				<MenuItem Click="OnFloatToolWindow1" Header="Float Tool Window1" />
+				<MenuItem Click="OnNewFloatingWindow" Header="New floating window" />
+			</MenuItem>
+			<!--  The WPF themes (Arc, VS, ...) have not been ported; the default theme comes in a dark and a light variant.  -->
+			<MenuItem x:Name="themeMenu" Header="Theme">
+				<MenuItem Click="OnSwitchTheme" Header="Dark" Tag="Dark" ToggleType="Radio" IsChecked="True" />
+				<MenuItem Click="OnSwitchTheme" Header="Light" Tag="Light" ToggleType="Radio" />
+			</MenuItem>
+		</Menu>
+
+		<ad:DockingManager
+			x:Name="dockManager"
+			Grid.Row="1"
+			AllowMixedOrientation="True"
+			AutoWindowSizeWhenOpened="True"
+			DocumentClosing="DockManager_DocumentClosing">
+			<ad:DockingManager.DocumentHeaderTemplate>
+				<DataTemplate>
+					<StackPanel Orientation="Horizontal">
+						<Image
+							Width="16"
+							Height="16"
+							Margin="0,0,4,0"
+							IsVisible="{Binding IconSource, Converter={x:Static ObjectConverters.IsNotNull}}"
+							Source="{Binding IconSource}" />
+						<TextBlock
+							VerticalAlignment="Center"
+							Text="{Binding Title}"
+							TextTrimming="CharacterEllipsis" />
+					</StackPanel>
+				</DataTemplate>
+			</ad:DockingManager.DocumentHeaderTemplate>
+			<ad:LayoutRoot>
+				<ad:LayoutPanel Orientation="Horizontal">
+					<ad:LayoutAnchorablePane DockWidth="50">
+						<ad:LayoutAnchorable
+							Title="WinForms Window"
+							CanClose="False"
+							CanHide="False"
+							ContentId="WinFormsWindow"
+							ToolTip="My WinForms Tool">
+							<!--  WinForms hosting is Windows/WPF only; the tool window keeps its place, title and rules.  -->
+							<local:WinFormsPlaceholder />
+						</ad:LayoutAnchorable>
+					</ad:LayoutAnchorablePane>
+					<ad:LayoutDocumentPaneGroup>
+						<ad:LayoutDocumentPane>
+							<ad:LayoutDocument
+								Title="Document 1"
+								ContentId="document1"
+								IconSource="avares://AvaloniaDemoProject/TestApp/Images/alarm-clock-blue.png">
+								<Grid Background="Transparent" RowDefinitions="*,Auto">
+									<Button
+										Height="28"
+										HorizontalAlignment="Stretch"
+										VerticalAlignment="Top"
+										Click="AddTwoDocuments_click"
+										Content="Click to add 2 documents" />
+									<TextBox
+										Grid.Row="1"
+										Background="Transparent"
+										Text="Document 1 Content" />
+								</Grid>
+							</ad:LayoutDocument>
+							<ad:LayoutDocument Title="Document 2" ContentId="document2">
+								<TextBox
+									x:Name="tbDocument2Timer"
+									Background="Transparent"
+									BorderThickness="0"
+									IsReadOnly="True"
+									Text="{Binding TestTimer, Mode=OneWay, StringFormat='Document 2 Attached to Timer ->{0}'}" />
+							</ad:LayoutDocument>
+						</ad:LayoutDocumentPane>
+					</ad:LayoutDocumentPaneGroup>
+					<ad:LayoutAnchorablePaneGroup DockWidth="50">
+						<ad:LayoutAnchorablePane>
+							<ad:LayoutAnchorable
+								Title="Tool Window 1"
+								ContentId="toolWindow1">
+								<StackPanel MinHeight="450" Background="Transparent">
+									<local:TestUserControl />
+									<TextBox
+										x:Name="tbToolWindow1Timer"
+										Background="Transparent"
+										IsReadOnly="True"
+										Text="{Binding TestTimer, Mode=OneWay, StringFormat='Tool Window 1 Attached to Timer ->{0}'}" />
+								</StackPanel>
+							</ad:LayoutAnchorable>
+							<ad:LayoutAnchorable Title="Tool Window 2" ContentId="toolWindow2">
+								<TextBlock Text="{Binding FocusedElement}" />
+							</ad:LayoutAnchorable>
+						</ad:LayoutAnchorablePane>
+					</ad:LayoutAnchorablePaneGroup>
+				</ad:LayoutPanel>
+
+				<ad:LayoutRoot.LeftSide>
+					<ad:LayoutAnchorSide>
+						<ad:LayoutAnchorGroup>
+							<ad:LayoutAnchorable
+								Title="AutoHide1 Content"
+								ContentId="AutoHide1Content"
+								IconSource="avares://AvaloniaDemoProject/TestApp/Images/address-book--pencil.png">
+								<TextBox
+									x:Name="tbAutoHide1Timer"
+									Background="Transparent"
+									IsReadOnly="True"
+									Text="{Binding TestTimer, Mode=OneWay, StringFormat='AutoHide Attached to Timer ->{0}'}" />
+							</ad:LayoutAnchorable>
+							<ad:LayoutAnchorable Title="AutoHide2 Content" ContentId="AutoHide2Content">
+								<StackPanel
+									x:Name="spAutoHide2"
+									Background="Transparent"
+									Orientation="Vertical">
+									<TextBox Background="Transparent" />
+									<TextBox Background="Transparent" />
+								</StackPanel>
+							</ad:LayoutAnchorable>
+						</ad:LayoutAnchorGroup>
+					</ad:LayoutAnchorSide>
+				</ad:LayoutRoot.LeftSide>
+			</ad:LayoutRoot>
+		</ad:DockingManager>
+	</Grid>
+</Window>

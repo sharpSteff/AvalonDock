@@ -1,0 +1,53 @@
+<UserControl
+	x:Class="ToggleTestApp.Views.FolderExplorerView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:vm="clr-namespace:ToggleTestApp.ViewModels"
+	xmlns:views="clr-namespace:ToggleTestApp.Views"
+	Background="{DynamicResource AppPanelBg}">
+	<UserControl.Resources>
+		<views:FileIconConverter x:Key="FileIconConverter" />
+		<views:FileColorConverter x:Key="FileColorConverter" />
+	</UserControl.Resources>
+	<Grid>
+		<TreeView
+			x:Name="Tree"
+			Background="Transparent"
+			BorderThickness="0"
+			DoubleTapped="OnTreeViewItemDoubleClick"
+			ItemsSource="{Binding RootItems}">
+			<TreeView.ItemsPanel>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel />
+				</ItemsPanelTemplate>
+			</TreeView.ItemsPanel>
+			<TreeView.ItemTemplate>
+				<TreeDataTemplate DataType="vm:FileTreeItem" ItemsSource="{Binding Children}">
+					<StackPanel Margin="2,1" Orientation="Horizontal">
+						<!--  Folder/File icon  -->
+						<Path
+							Width="12"
+							Height="12"
+							Margin="0,0,6,0"
+							VerticalAlignment="Center"
+							Data="{Binding IsDirectory, Converter={StaticResource FileIconConverter}}"
+							Fill="{Binding IsDirectory, Converter={StaticResource FileColorConverter}}"
+							Stretch="Uniform" />
+						<TextBlock
+							VerticalAlignment="Center"
+							FontSize="12"
+							Foreground="{DynamicResource AppText}"
+							Text="{Binding Name}" />
+					</StackPanel>
+				</TreeDataTemplate>
+			</TreeView.ItemTemplate>
+			<TreeView.Styles>
+				<Style Selector="TreeViewItem">
+					<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+					<Setter Property="Foreground" Value="{DynamicResource AppText}" />
+					<Setter Property="MinHeight" Value="22" />
+				</Style>
+			</TreeView.Styles>
+		</TreeView>
+	</Grid>
+</UserControl>

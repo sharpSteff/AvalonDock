@@ -153,3 +153,23 @@ dotnet run --project source/AutomationTest/AvalonDock.Avalonia.PlatformTests -- 
 ```bash
 dotnet run --project source/AvalonDockAvaloniaApp
 ```
+
+## Demo applications
+
+`source/AvaloniaDemoProject` ports the two WPF demo applications to Avalonia:
+
+```bash
+# Port of source/TestApp (DockingManager)
+dotnet run --project source/AvaloniaDemoProject
+
+# Port of source/AvalonDockCodeApp (ToggleDockingManager, MVVM + dependency injection)
+dotnet run --project source/AvaloniaDemoProject -- --app code
+```
+
+Both keep the window titles, menu headers, tool window titles and content ids of the WPF applications.
+The code application compiles the view models of `source/AvalonDockCodeApp/ViewModels` unchanged apart from
+a few `#if AVALONIA` using aliases (the project defines `AVALONIA`); two small shims stand in for
+`Dispatcher` and `Microsoft.Win32.OpenFolderDialog`. Only the views, the WPF-only icon helpers and the
+main windows are written for Avalonia. What is not ported: WinForms hosting (a placeholder takes its
+place), the WPF themes other than the default one (light and dark are available), and the LibreWPF and
+DevFlow diagnostics.
