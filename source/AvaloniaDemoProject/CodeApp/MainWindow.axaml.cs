@@ -2,14 +2,14 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Styling;
 using AvalonDock;
 using AvalonDock.Core;
 using AvalonDock.DependencyInjection;
 using AvalonDock.Serializer.Xml;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Styling;
 using ToggleTestApp.ViewModels;
 
 namespace ToggleTestApp
@@ -80,7 +80,6 @@ namespace ToggleTestApp
 		private void OnExit(object? sender, RoutedEventArgs e) => Close();
 
 		// ===== Layout persistence =====
-
 		private void OnSaveLayout(object? sender, RoutedEventArgs e)
 		{
 			new XmlLayoutSerializer(dockManager).Serialize(LayoutFilePath);

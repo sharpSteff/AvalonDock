@@ -1,10 +1,10 @@
 using System;
-using Avalonia;
-using Avalonia.Controls.Templates;
-using Avalonia.Media;
 using AvalonDock;
 using AvalonDock.Core;
 using AvalonDock.DependencyInjection;
+using Avalonia;
+using Avalonia.Controls.Templates;
+using Avalonia.Media;
 using Microsoft.Extensions.DependencyInjection;
 using ToggleTestApp.ViewModels;
 using ToggleTestApp.Views;

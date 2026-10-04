@@ -3,6 +3,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using AvalonDock;
+using AvalonDock.Layout;
+using AvalonDock.Serializer.Xml;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -11,15 +14,11 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using AvaloniaDemoProject.Shared;
-using AvalonDock;
-using AvalonDock.Layout;
-using AvalonDock.Serializer.Xml;
 
 namespace TestApp
 {
 	/// <summary>
-	/// Avalonia port of the WPF TestApp's main window. The handlers below are those of the WPF application; the
-	/// LibreWPF and DevFlow diagnostics of the WPF window are not part of it.
+	/// Avalonia port of the WPF TestApp's main window. The handlers below are those of the WPF application.
 	/// </summary>
 	public partial class MainWindow : Window, INotifyPropertyChanged
 	{

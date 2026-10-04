@@ -222,6 +222,8 @@ namespace AvalonDock.Avalonia.PlatformTests
 					"the anchorable is in a new pane at the left edge");
 				var paneControl = f.Manager.GetVisualDescendants().OfType<LayoutAnchorablePaneControl>().FirstOrDefault(p => p.Model == f.Tool2.Parent);
 				Check(paneControl != null && paneControl.TranslatePoint(default, f.Manager)?.X < 5, "the new pane is shown at the left edge");
+				// The docked pane keeps a usable width rather than collapsing to its title bar.
+				Check(paneControl != null && paneControl.Bounds.Width > 80, $"the new pane has a usable width ({paneControl?.Bounds.Width})");
 			}
 			finally
 			{

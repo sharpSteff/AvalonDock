@@ -1,7 +1,7 @@
-using Avalonia.Controls;
-using Avalonia.Styling;
 using AvalonDock.Controls;
 using AvalonDock.Core;
+using Avalonia.Controls;
+using Avalonia.Styling;
 using ToggleTestApp.ViewModels;
 
 namespace ToggleTestApp.Views;
