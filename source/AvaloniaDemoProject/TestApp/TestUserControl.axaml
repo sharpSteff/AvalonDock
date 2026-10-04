@@ -1,0 +1,17 @@
+<!--  Avalonia port of source/TestApp/TestUserControl.xaml.  -->
+<UserControl
+	x:Class="TestApp.TestUserControl"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	MinWidth="300"
+	MinHeight="300"
+	Background="Transparent">
+	<StackPanel Margin="0">
+		<TextBlock FontWeight="Bold" TextWrapping="Wrap">This Comtrol demos an Auto-Size FloatingWindow</TextBlock>
+		<TextBlock TextWrapping="Wrap">
+			This content can initially be sized to the content of a containing user control when dragging
+			the LayoutAnchorable into floating mode using the DockingManager's AutoWindowSizeWhenOpened
+			dependency property.
+		</TextBlock>
+	</StackPanel>
+</UserControl>

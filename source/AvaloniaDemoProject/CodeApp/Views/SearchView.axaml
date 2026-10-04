@@ -1,0 +1,100 @@
+<UserControl
+	x:Class="ToggleTestApp.Views.SearchView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:vm="clr-namespace:ToggleTestApp.ViewModels"
+	Background="{DynamicResource AppPanelBg}">
+	<UserControl.Styles>
+		<Style Selector="ToggleButton.option">
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="Padding" Value="4,2" />
+			<Setter Property="Margin" Value="0,0,4,0" />
+			<Setter Property="MinHeight" Value="0" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="Foreground" Value="{DynamicResource AppSubText}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource AppDimText}" />
+			<Setter Property="BorderThickness" Value="1" />
+		</Style>
+	</UserControl.Styles>
+	<Grid RowDefinitions="Auto,Auto,*,Auto">
+		<!--  Search input  -->
+		<Grid Grid.Row="0" Margin="8,8,8,4">
+			<TextBox
+				Padding="6,4"
+				Background="{DynamicResource AppInputBg}"
+				BorderBrush="{DynamicResource AppDimText}"
+				BorderThickness="1"
+				CaretBrush="{DynamicResource AppText}"
+				FontSize="12"
+				Foreground="{DynamicResource AppText}"
+				Text="{Binding SearchText}" />
+		</Grid>
+
+		<!--  Options row  -->
+		<StackPanel Grid.Row="1" Margin="8,0,8,4" Orientation="Horizontal">
+			<ToggleButton Classes="option" Content="Aa" IsChecked="{Binding MatchCase}" ToolTip.Tip="Match Case" />
+			<ToggleButton Classes="option" Content="W" IsChecked="{Binding WholeWord}" ToolTip.Tip="Whole Word" />
+			<ToggleButton Classes="option" Content=".*" IsChecked="{Binding UseRegex}" ToolTip.Tip="Use Regex" />
+		</StackPanel>
+
+		<!--  Results tree  -->
+		<TreeView
+			Grid.Row="2"
+			Margin="0"
+			Background="Transparent"
+			BorderThickness="0"
+			ItemsSource="{Binding Results}">
+			<!--  Like VirtualizingPanel.IsVirtualizing in WPF: only the visible result groups are realised.  -->
+			<TreeView.ItemsPanel>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel />
+				</ItemsPanelTemplate>
+			</TreeView.ItemsPanel>
+			<TreeView.DataTemplates>
+				<TreeDataTemplate DataType="vm:SearchFileGroup" ItemsSource="{Binding Matches}">
+					<StackPanel Margin="0,2" Orientation="Horizontal">
+						<TextBlock
+							FontSize="12"
+							FontWeight="SemiBold"
+							Foreground="{DynamicResource AppText}"
+							Text="{Binding FileName}" />
+						<TextBlock
+							Margin="4,0,0,0"
+							VerticalAlignment="Center"
+							FontSize="11"
+							Foreground="{DynamicResource AppSubText}"
+							Text="{Binding MatchCount, StringFormat=' ({0})'}" />
+					</StackPanel>
+				</TreeDataTemplate>
+
+				<DataTemplate DataType="vm:SearchMatch">
+					<TextBlock
+						Margin="0,1"
+						Cursor="Hand"
+						FontFamily="Cascadia Mono,Consolas,Courier New,monospace"
+						FontSize="11"
+						Tapped="OnMatchClick"
+						ToolTip.Tip="{Binding FilePath}">
+						<Run Foreground="{DynamicResource AppDimText}" Text="{Binding LineNumber, StringFormat='{}{0}: ', Mode=OneWay}" />
+						<Run Foreground="{DynamicResource AppSubText}" Text="{Binding Prefix, Mode=OneWay}" />
+						<Run FontWeight="Bold" Foreground="#E8AB53" Text="{Binding MatchText, Mode=OneWay}" />
+						<Run Foreground="{DynamicResource AppSubText}" Text="{Binding Suffix, Mode=OneWay}" />
+					</TextBlock>
+				</DataTemplate>
+			</TreeView.DataTemplates>
+
+			<TreeView.Styles>
+				<Style Selector="TreeViewItem">
+					<Setter Property="IsExpanded" Value="True" />
+					<Setter Property="Foreground" Value="{DynamicResource AppText}" />
+					<Setter Property="MinHeight" Value="20" />
+				</Style>
+			</TreeView.Styles>
+		</TreeView>
+
+		<!--  Status bar  -->
+		<Border Grid.Row="3" Padding="8,4" Background="{DynamicResource AppInputBarBg}">
+			<TextBlock FontSize="11" Foreground="{DynamicResource AppSubText}" Text="{Binding StatusText}" />
+		</Border>
+	</Grid>
+</UserControl>
