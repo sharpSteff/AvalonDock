@@ -1,12 +1,14 @@
 name: AvalonDock.Avalonia
 
 # Builds AvalonDock.Avalonia and runs its headless tests and the platform tests on Windows, macOS and
-# Linux. Separate from ci.yml, which needs Windows for the WPF solution.
+# Linux. The Avalonia projects are part of AvalonDock.sln; AvalonDock.Avalonia.slnf selects the ones
+# that build without WPF, so this runs on every OS. ci.yml builds the whole solution on Windows.
 on:
   pull_request:
     branches: [master, 'release/**']
     paths:
-      - 'source/Components/AvalonDock.Avalonia/**'
+      # AvalonDock.Avalonia.csproj compiles the sources of the WPF library's folder, so any change there counts.
+      - 'source/Components/AvalonDock/**'
       - 'source/Components/AvalonDock.Core/**'
       - 'source/AutomationTest/AvalonDock.Avalonia.Tests/**'
       - 'source/AutomationTest/AvalonDock.Avalonia.PlatformTests/**'
@@ -17,12 +19,14 @@ on:
       - 'source/Components/AvalonDock.Mvvm*/**'
       - 'source/Components/AvalonDock.DependencyInjection/**'
       - 'source/Components/AvalonDock.Serializer.Xml/**'
-      - 'source/AvalonDock.Avalonia.sln'
+      - 'source/AvalonDock.sln'
+      - 'source/AvalonDock.Avalonia.slnf'
       - 'source/Directory.Build.*'
       - '.github/workflows/avalonia.yml'
   push:
     paths:
-      - 'source/Components/AvalonDock.Avalonia/**'
+      # AvalonDock.Avalonia.csproj compiles the sources of the WPF library's folder, so any change there counts.
+      - 'source/Components/AvalonDock/**'
       - 'source/Components/AvalonDock.Core/**'
       - 'source/AutomationTest/AvalonDock.Avalonia.Tests/**'
       - 'source/AutomationTest/AvalonDock.Avalonia.PlatformTests/**'
@@ -33,7 +37,8 @@ on:
       - 'source/Components/AvalonDock.Mvvm*/**'
       - 'source/Components/AvalonDock.DependencyInjection/**'
       - 'source/Components/AvalonDock.Serializer.Xml/**'
-      - 'source/AvalonDock.Avalonia.sln'
+      - 'source/AvalonDock.sln'
+      - 'source/AvalonDock.Avalonia.slnf'
       - 'source/Directory.Build.*'
       - '.github/workflows/avalonia.yml'
   workflow_dispatch:
@@ -63,10 +68,10 @@ jobs:
             10.0.x
 
       - name: Restore
-        run: dotnet restore source/AvalonDock.Avalonia.sln
+        run: dotnet restore source/AvalonDock.Avalonia.slnf
 
       - name: Build
-        run: dotnet build source/AvalonDock.Avalonia.sln --configuration Release --no-restore
+        run: dotnet build source/AvalonDock.Avalonia.slnf --configuration Release --no-restore
 
       # Avalonia.Headless renders with Skia off screen, so no display is needed.
       - name: Headless tests

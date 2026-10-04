@@ -1,7 +1,16 @@
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Layout;
+using Avalonia.Media;
+#else
 using System.Windows;
 using System.Windows.Media;
+#endif
 using AvalonDock.Layout;
+#if !AVALONIA
+using Orientation = System.Windows.Controls.Orientation;
+#endif
 
 namespace AvalonDock.Controls
 {
@@ -54,7 +63,7 @@ namespace AvalonDock.Controls
 
 			var paneGroup = targetModel.Parent as LayoutDocumentPaneGroup;
 			var requiredOrientation = Type == DropTargetType.DocumentPaneDockBottom || Type == DropTargetType.DocumentPaneDockTop ?
-				System.Windows.Controls.Orientation.Vertical : System.Windows.Controls.Orientation.Horizontal;
+				Orientation.Vertical : Orientation.Horizontal;
 			var allowMixedOrientation = targetModel.Root.Manager.AllowMixedOrientation;
 
 			if (paneGroup == null)
@@ -90,9 +99,9 @@ namespace AvalonDock.Controls
 			{
 				case DropTargetType.DocumentPaneDockBottom:
 					{
-						if (!allowMixedOrientation && paneGroup.Orientation != System.Windows.Controls.Orientation.Vertical)
+						if (!allowMixedOrientation && paneGroup.Orientation != Orientation.Vertical)
 						{
-							paneGroup.Orientation = System.Windows.Controls.Orientation.Vertical;
+							paneGroup.Orientation = Orientation.Vertical;
 						}
 
 						var targetIndex = paneGroup.IndexOfChild(targetModel);
@@ -114,9 +123,9 @@ namespace AvalonDock.Controls
 
 				case DropTargetType.DocumentPaneDockTop:
 					{
-						if (!allowMixedOrientation && paneGroup.Orientation != System.Windows.Controls.Orientation.Vertical)
+						if (!allowMixedOrientation && paneGroup.Orientation != Orientation.Vertical)
 						{
-							paneGroup.Orientation = System.Windows.Controls.Orientation.Vertical;
+							paneGroup.Orientation = Orientation.Vertical;
 						}
 
 						var insertToIndex = paneGroup.IndexOfChild(targetModel);
@@ -137,9 +146,9 @@ namespace AvalonDock.Controls
 
 				case DropTargetType.DocumentPaneDockLeft:
 					{
-						if (!allowMixedOrientation && paneGroup.Orientation != System.Windows.Controls.Orientation.Horizontal)
+						if (!allowMixedOrientation && paneGroup.Orientation != Orientation.Horizontal)
 						{
-							paneGroup.Orientation = System.Windows.Controls.Orientation.Horizontal;
+							paneGroup.Orientation = Orientation.Horizontal;
 						}
 
 						var insertToIndex = paneGroup.IndexOfChild(targetModel);
@@ -160,9 +169,9 @@ namespace AvalonDock.Controls
 
 				case DropTargetType.DocumentPaneDockRight:
 					{
-						if (!allowMixedOrientation && paneGroup.Orientation != System.Windows.Controls.Orientation.Horizontal)
+						if (!allowMixedOrientation && paneGroup.Orientation != Orientation.Horizontal)
 						{
-							paneGroup.Orientation = System.Windows.Controls.Orientation.Horizontal;
+							paneGroup.Orientation = Orientation.Horizontal;
 						}
 
 						var targetIndex = paneGroup.IndexOfChild(targetModel);
@@ -227,7 +236,7 @@ namespace AvalonDock.Controls
 						if (parentModel == null)
 						{
 							var parentContainer = targetModel.Parent as ILayoutContainer;
-							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = System.Windows.Controls.Orientation.Vertical };
+							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = Orientation.Vertical };
 							parentContainer.ReplaceChild(targetModel, newParentModel);
 							newParentModel.Children.Add(targetModel as LayoutDocumentPane);
 							newParentModel.Children.Add(newLayoutDocumentPane);
@@ -235,16 +244,16 @@ namespace AvalonDock.Controls
 						else
 						{
 							var manager = parentModel.Root.Manager;
-							if (!manager.AllowMixedOrientation || parentModel.Orientation == System.Windows.Controls.Orientation.Vertical)
+							if (!manager.AllowMixedOrientation || parentModel.Orientation == Orientation.Vertical)
 							{
-								parentModel.Orientation = System.Windows.Controls.Orientation.Vertical;
+								parentModel.Orientation = Orientation.Vertical;
 								int targetPaneIndex = parentModel.IndexOfChild(targetModel);
 								parentModel.Children.Insert(targetPaneIndex + 1, newLayoutDocumentPane);
 							}
 							else
 							{
 								LayoutDocumentPaneGroup newChildGroup = new LayoutDocumentPaneGroup();
-								newChildGroup.Orientation = System.Windows.Controls.Orientation.Vertical;
+								newChildGroup.Orientation = Orientation.Vertical;
 								parentModel.ReplaceChild(targetModel, newChildGroup);
 								newChildGroup.Children.Add(targetModel);
 								newChildGroup.Children.Add(newLayoutDocumentPane);
@@ -265,7 +274,7 @@ namespace AvalonDock.Controls
 						if (parentModel == null)
 						{
 							var parentContainer = targetModel.Parent as ILayoutContainer;
-							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = System.Windows.Controls.Orientation.Vertical };
+							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = Orientation.Vertical };
 							parentContainer.ReplaceChild(targetModel, newParentModel);
 							newParentModel.Children.Add(newLayoutDocumentPane);
 							newParentModel.Children.Add(targetModel as LayoutDocumentPane);
@@ -273,16 +282,16 @@ namespace AvalonDock.Controls
 						else
 						{
 							var manager = parentModel.Root.Manager;
-							if (!manager.AllowMixedOrientation || parentModel.Orientation == System.Windows.Controls.Orientation.Vertical)
+							if (!manager.AllowMixedOrientation || parentModel.Orientation == Orientation.Vertical)
 							{
-								parentModel.Orientation = System.Windows.Controls.Orientation.Vertical;
+								parentModel.Orientation = Orientation.Vertical;
 								int targetPaneIndex = parentModel.IndexOfChild(targetModel);
 								parentModel.Children.Insert(targetPaneIndex, newLayoutDocumentPane);
 							}
 							else
 							{
 								LayoutDocumentPaneGroup newChildGroup = new LayoutDocumentPaneGroup();
-								newChildGroup.Orientation = System.Windows.Controls.Orientation.Vertical;
+								newChildGroup.Orientation = Orientation.Vertical;
 								parentModel.ReplaceChild(targetModel, newChildGroup);
 								newChildGroup.Children.Add(newLayoutDocumentPane);
 								newChildGroup.Children.Add(targetModel);
@@ -303,7 +312,7 @@ namespace AvalonDock.Controls
 						if (parentModel == null)
 						{
 							var parentContainer = targetModel.Parent as ILayoutContainer;
-							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = System.Windows.Controls.Orientation.Horizontal };
+							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = Orientation.Horizontal };
 							parentContainer.ReplaceChild(targetModel, newParentModel);
 							newParentModel.Children.Add(newLayoutDocumentPane);
 							newParentModel.Children.Add(targetModel as LayoutDocumentPane);
@@ -311,16 +320,16 @@ namespace AvalonDock.Controls
 						else
 						{
 							var manager = parentModel.Root.Manager;
-							if (!manager.AllowMixedOrientation || parentModel.Orientation == System.Windows.Controls.Orientation.Horizontal)
+							if (!manager.AllowMixedOrientation || parentModel.Orientation == Orientation.Horizontal)
 							{
-								parentModel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+								parentModel.Orientation = Orientation.Horizontal;
 								int targetPaneIndex = parentModel.IndexOfChild(targetModel);
 								parentModel.Children.Insert(targetPaneIndex, newLayoutDocumentPane);
 							}
 							else
 							{
 								LayoutDocumentPaneGroup newChildGroup = new LayoutDocumentPaneGroup();
-								newChildGroup.Orientation = System.Windows.Controls.Orientation.Horizontal;
+								newChildGroup.Orientation = Orientation.Horizontal;
 								parentModel.ReplaceChild(targetModel, newChildGroup);
 								newChildGroup.Children.Add(newLayoutDocumentPane);
 								newChildGroup.Children.Add(targetModel);
@@ -341,7 +350,7 @@ namespace AvalonDock.Controls
 						if (parentModel == null)
 						{
 							var parentContainer = targetModel.Parent as ILayoutContainer;
-							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = System.Windows.Controls.Orientation.Horizontal };
+							var newParentModel = new LayoutDocumentPaneGroup() { Orientation = Orientation.Horizontal };
 							parentContainer.ReplaceChild(targetModel, newParentModel);
 							newParentModel.Children.Add(targetModel as LayoutDocumentPane);
 							newParentModel.Children.Add(newLayoutDocumentPane);
@@ -349,16 +358,16 @@ namespace AvalonDock.Controls
 						else
 						{
 							var manager = parentModel.Root.Manager;
-							if (!manager.AllowMixedOrientation || parentModel.Orientation == System.Windows.Controls.Orientation.Horizontal)
+							if (!manager.AllowMixedOrientation || parentModel.Orientation == Orientation.Horizontal)
 							{
-								parentModel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+								parentModel.Orientation = Orientation.Horizontal;
 								int targetPaneIndex = parentModel.IndexOfChild(targetModel);
 								parentModel.Children.Insert(targetPaneIndex + 1, newLayoutDocumentPane);
 							}
 							else
 							{
 								LayoutDocumentPaneGroup newChildGroup = new LayoutDocumentPaneGroup();
-								newChildGroup.Orientation = System.Windows.Controls.Orientation.Horizontal;
+								newChildGroup.Orientation = Orientation.Horizontal;
 								parentModel.ReplaceChild(targetModel, newChildGroup);
 								newChildGroup.Children.Add(targetModel);
 								newChildGroup.Children.Add(newLayoutDocumentPane);
@@ -424,8 +433,7 @@ namespace AvalonDock.Controls
 			{
 				case DropTargetType.DocumentPaneDockInside:
 					{
-						var targetScreenRect = TargetElement.GetScreenArea();
-						targetScreenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+						var targetScreenRect = ToOverlay(overlayWindow, TargetElement.GetScreenArea());
 
 						if (_tabIndex == -1)
 						{
@@ -433,22 +441,17 @@ namespace AvalonDock.Controls
 						}
 						else
 						{
-							var translatedDetectionRect = new Rect(DetectionRects[0].TopLeft, DetectionRects[0].BottomRight);
-							translatedDetectionRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+							var translatedDetectionRect = ToOverlay(overlayWindow, DetectionRects[0]);
 
-							var pathFigure = new PathFigure();
-							pathFigure.StartPoint = targetScreenRect.BottomRight;
-							pathFigure.Segments.Add(new LineSegment() { Point = new Point(targetScreenRect.Right, translatedDetectionRect.Bottom) });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.BottomRight });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.TopRight });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.TopLeft });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.BottomLeft });
-							pathFigure.Segments.Add(new LineSegment() { Point = new Point(targetScreenRect.Left, translatedDetectionRect.Bottom) });
-							pathFigure.Segments.Add(new LineSegment() { Point = targetScreenRect.BottomLeft });
-							pathFigure.IsClosed = true;
-							pathFigure.IsFilled = true;
-							pathFigure.Freeze();
-							return new PathGeometry(new PathFigure[] { pathFigure });
+							return CreatePolygon(
+								targetScreenRect.BottomRight,
+								new Point(targetScreenRect.Right, translatedDetectionRect.Bottom),
+								translatedDetectionRect.BottomRight,
+								translatedDetectionRect.TopRight,
+								translatedDetectionRect.TopLeft,
+								translatedDetectionRect.BottomLeft,
+								new Point(targetScreenRect.Left, translatedDetectionRect.Bottom),
+								targetScreenRect.BottomLeft);
 						}
 					}
 
@@ -457,8 +460,7 @@ namespace AvalonDock.Controls
 				case DropTargetType.DocumentPaneDockLeft:
 				case DropTargetType.DocumentPaneDockRight:
 					{
-						var targetScreenRect = TargetElement.GetScreenArea();
-						targetScreenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+						var targetScreenRect = ToOverlay(overlayWindow, TargetElement.GetScreenArea());
 
 						if (OverlayPreviewRules.TryComputePanePreviewRect(
 							Type,

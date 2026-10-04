@@ -17,6 +17,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- Avalonia implementations, built by AvalonDock.Avalonia.csproj in this folder, which also
+		     keeps its intermediate files under obj\Avalonia. -->
+		<Compile Remove="**\*.Avalonia.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\AvalonDock.Core\AvalonDock.Core.csproj" />
 	</ItemGroup>
 	<ItemGroup>

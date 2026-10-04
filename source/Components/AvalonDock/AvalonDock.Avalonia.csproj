@@ -1,0 +1,95 @@
+<Project>
+	<!-- Avalonia build of AvalonDock: DockingManager, ToggleDockingManager and the layout model on
+	     Avalonia, so they run on Windows, Linux and macOS without a WPF implementation underneath.
+	     It compiles the sources of this folder - the same files as AvalonDock.csproj - with AVALONIA
+	     defined:
+	       - files without platform differences are shared as they are;
+	       - small differences sit behind #if AVALONIA in the shared file;
+	       - where a control's Avalonia implementation differs too much to interleave, it lives next
+	         to the WPF file as Name.Avalonia.cs and the WPF file is removed below (AvalonDock.csproj
+	         in turn skips every *.Avalonia.cs file);
+	       - files that only make sense on WPF (Win32 interop, WindowChrome, WPF converters) are
+	         removed below.
+	     The types keep the namespaces of the WPF library, so code written against it moves over with
+	     few changes. -->
+
+	<!-- Both projects live in this folder, so this one keeps its intermediate and output files apart.
+	     These must be set before the SDK props are imported. -->
+	<PropertyGroup>
+		<BaseIntermediateOutputPath>obj\Avalonia\</BaseIntermediateOutputPath>
+		<BaseOutputPath>bin\Avalonia\</BaseOutputPath>
+	</PropertyGroup>
+	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+		<RootNamespace>AvalonDock</RootNamespace>
+		<AssemblyName>AvalonDock.Avalonia</AssemblyName>
+		<PackageId>Dirkster.AvalonDock.Avalonia</PackageId>
+		<Description>This assembly implements a docking layout system for Avalonia (DockingManager and ToggleDockingManager).</Description>
+		<PackageTags>Avalonia avalondock docking layout MVVM</PackageTags>
+		<LangVersion>latest</LangVersion>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>sn.snk</AssemblyOriginatorKeyFile>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+		<!-- Same opt-out as AvalonDock.csproj: the code keeps upstream's conventions, which the
+		     StyleCop/Sonar gates of Directory.Build.props were never applied to. Compiler warnings
+		     still fail the build. -->
+		<RunAnalyzers>false</RunAnalyzers>
+		<EnableNETAnalyzers>false</EnableNETAnalyzers>
+		<DefineConstants>$(DefineConstants);AVALONIA</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="12.1.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AvalonDock.Core\AvalonDock.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- The WPF build's intermediate and output files. -->
+		<Compile Remove="obj\**;bin\**" />
+		<AvaloniaXaml Remove="obj\**;bin\**" />
+		<EmbeddedResource Remove="obj\**;bin\**" />
+		<None Remove="obj\**;bin\**" />
+
+		<!-- WPF only. -->
+		<Compile Remove="Controls\Shell\**" />
+		<Compile Remove="Converters\*.cs" />
+		<Compile Include="Converters\*.Avalonia.cs" />
+		<Compile Remove="Win32Helper.cs;WindowHelper.cs" />
+		<Compile Remove="Themes\DictionaryTheme.cs;Themes\GenericTheme.cs;Themes\NamespaceDoc.cs" />
+		<Compile Remove="Controls\ContextMenuEx.cs;Controls\DropArea.cs;Controls\DropDownControlArea.cs;Controls\FullWeakDictionary.cs;Controls\IDropTarget.cs;Controls\IOverlayWindowHost.cs;Controls\LayoutAnchorGroupControl.cs;Controls\LayoutAnchorableControl.cs;Controls\LayoutDocumentControl.cs;Controls\MenuItemEx.cs;Controls\NamespaceDoc.cs;Controls\TransformExtentions.cs;Controls\WeakDictionary.cs;Controls\WindowActivateEventArgs.cs;Controls\WindowHookHandler.cs" />
+
+		<!-- WPF files replaced by a Name.Avalonia.cs next to them. -->
+		<Compile Remove="DockingManager.cs;ToggleDockingManager.cs;Themes\Theme.cs" />
+		<Compile Remove="Layout\ILayoutElementForFloatingWindowExtension.cs" />
+		<Compile Remove="Controls\AnchorablePaneTabPanel.cs;Controls\AnchorablePaneTitle.cs;Controls\AutoHideWindowManager.cs;Controls\DetachedAnchorableWindow.cs;Controls\DocumentPaneTabPanel.cs;Controls\DragService.cs;Controls\DropDownButton.cs;Controls\DropTargetBase.cs;Controls\Extensions.cs;Controls\FocusElementManager.cs" />
+		<Compile Remove="Controls\LayoutAnchorControl.cs;Controls\LayoutAnchorSideControl.cs;Controls\LayoutAnchorableFloatingWindowControl.cs;Controls\LayoutAnchorableItem.cs;Controls\LayoutAnchorablePaneControl.cs;Controls\LayoutAnchorableTabItem.cs;Controls\LayoutAutoHideWindowControl.cs;Controls\LayoutDocumentFloatingWindowControl.cs;Controls\LayoutDocumentItem.cs;Controls\LayoutDocumentPaneControl.cs" />
+		<Compile Remove="Controls\LayoutDocumentTabItem.cs;Controls\LayoutFloatingWindowControl.cs;Controls\LayoutGridControl.cs;Controls\LayoutGridResizerControl.cs;Controls\LayoutItem.cs;Controls\NavigatorWindow.cs;Controls\OverlayWindow.cs;Controls\TabControlEx.cs;Controls\ToggleAnchorablePaneTitle.cs;Controls\ToggleDock.cs;Controls\ToggleDockButtonBar.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Properties\Resources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resources.resx</DependentUpon>
+		</Compile>
+		<EmbeddedResource Update="Properties\Resources.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Include="Themes\Generic\Images\*.png;Themes\Generic\Images\*.PNG" />
+	</ItemGroup>
+
+	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

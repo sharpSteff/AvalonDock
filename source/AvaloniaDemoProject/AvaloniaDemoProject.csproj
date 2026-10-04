@@ -20,7 +20,9 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<!-- Like the WPF demo applications: sample code, warnings are not errors and no XML documentation file. -->
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-		<NoWarn>$(NoWarn);SA0001</NoWarn>
+		<!-- AVLN3001: the code app's main window is created through dependency injection, so it has no
+		     parameterless constructor for the runtime XAML loader, which this app never uses for it. -->
+		<NoWarn>$(NoWarn);SA0001;AVLN3001</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -32,7 +34,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Components\AvalonDock.Avalonia\AvalonDock.Avalonia.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock\AvalonDock.Avalonia.csproj" />
 		<ProjectReference Include="..\Components\AvalonDock.Core\AvalonDock.Core.csproj" />
 		<ProjectReference Include="..\Components\AvalonDock.Mvvm\AvalonDock.Mvvm.csproj" />
 		<ProjectReference Include="..\Components\AvalonDock.Mvvm.CommunityToolkit\AvalonDock.Mvvm.CommunityToolkit.csproj" />

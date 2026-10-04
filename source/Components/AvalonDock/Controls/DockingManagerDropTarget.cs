@@ -1,8 +1,17 @@
 using System;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Layout;
+using Avalonia.Media;
+#else
 using System.Windows;
 using System.Windows.Media;
+#endif
 using AvalonDock.Layout;
+#if !AVALONIA
+using Orientation = System.Windows.Controls.Orientation;
+#endif
 
 namespace AvalonDock.Controls
 {
@@ -35,15 +44,15 @@ namespace AvalonDock.Controls
 			{
 				case DropTargetType.DockingManagerDockLeft:
 					{
-						if (_manager.Layout.RootPanel.Orientation != System.Windows.Controls.Orientation.Horizontal &&
+						if (_manager.Layout.RootPanel.Orientation != Orientation.Horizontal &&
 							_manager.Layout.RootPanel.Children.Count == 1)
-							_manager.Layout.RootPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+							_manager.Layout.RootPanel.Orientation = Orientation.Horizontal;
 
-						if (_manager.Layout.RootPanel.Orientation == System.Windows.Controls.Orientation.Horizontal)
+						if (_manager.Layout.RootPanel.Orientation == Orientation.Horizontal)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
-								layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Horizontal)
+								layoutAnchorablePaneGroup.Orientation == Orientation.Horizontal)
 							{
 								var childrenToTransfer = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < childrenToTransfer.Length; i++)
@@ -58,7 +67,7 @@ namespace AvalonDock.Controls
 						{
 							var newOrientedPanel = new LayoutPanel()
 							{
-								Orientation = System.Windows.Controls.Orientation.Horizontal
+								Orientation = Orientation.Horizontal
 							};
 
 							newOrientedPanel.Children.Add(floatingWindow.RootPanel);
@@ -72,15 +81,15 @@ namespace AvalonDock.Controls
 
 				case DropTargetType.DockingManagerDockRight:
 					{
-						if (_manager.Layout.RootPanel.Orientation != System.Windows.Controls.Orientation.Horizontal &&
+						if (_manager.Layout.RootPanel.Orientation != Orientation.Horizontal &&
 							_manager.Layout.RootPanel.Children.Count == 1)
-							_manager.Layout.RootPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+							_manager.Layout.RootPanel.Orientation = Orientation.Horizontal;
 
-						if (_manager.Layout.RootPanel.Orientation == System.Windows.Controls.Orientation.Horizontal)
+						if (_manager.Layout.RootPanel.Orientation == Orientation.Horizontal)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
-								layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Horizontal)
+								layoutAnchorablePaneGroup.Orientation == Orientation.Horizontal)
 							{
 								var childrenToTransfer = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < childrenToTransfer.Length; i++)
@@ -95,7 +104,7 @@ namespace AvalonDock.Controls
 						{
 							var newOrientedPanel = new LayoutPanel()
 							{
-								Orientation = System.Windows.Controls.Orientation.Horizontal
+								Orientation = Orientation.Horizontal
 							};
 
 							newOrientedPanel.Children.Add(floatingWindow.RootPanel);
@@ -109,15 +118,15 @@ namespace AvalonDock.Controls
 
 				case DropTargetType.DockingManagerDockTop:
 					{
-						if (_manager.Layout.RootPanel.Orientation != System.Windows.Controls.Orientation.Vertical &&
+						if (_manager.Layout.RootPanel.Orientation != Orientation.Vertical &&
 							_manager.Layout.RootPanel.Children.Count == 1)
-							_manager.Layout.RootPanel.Orientation = System.Windows.Controls.Orientation.Vertical;
+							_manager.Layout.RootPanel.Orientation = Orientation.Vertical;
 
-						if (_manager.Layout.RootPanel.Orientation == System.Windows.Controls.Orientation.Vertical)
+						if (_manager.Layout.RootPanel.Orientation == Orientation.Vertical)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
-								layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Vertical)
+								layoutAnchorablePaneGroup.Orientation == Orientation.Vertical)
 							{
 								var childrenToTransfer = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < childrenToTransfer.Length; i++)
@@ -132,7 +141,7 @@ namespace AvalonDock.Controls
 						{
 							var newOrientedPanel = new LayoutPanel()
 							{
-								Orientation = System.Windows.Controls.Orientation.Vertical
+								Orientation = Orientation.Vertical
 							};
 
 							newOrientedPanel.Children.Add(floatingWindow.RootPanel);
@@ -146,15 +155,15 @@ namespace AvalonDock.Controls
 
 				case DropTargetType.DockingManagerDockBottom:
 					{
-						if (_manager.Layout.RootPanel.Orientation != System.Windows.Controls.Orientation.Vertical &&
+						if (_manager.Layout.RootPanel.Orientation != Orientation.Vertical &&
 							_manager.Layout.RootPanel.Children.Count == 1)
-							_manager.Layout.RootPanel.Orientation = System.Windows.Controls.Orientation.Vertical;
+							_manager.Layout.RootPanel.Orientation = Orientation.Vertical;
 
-						if (_manager.Layout.RootPanel.Orientation == System.Windows.Controls.Orientation.Vertical)
+						if (_manager.Layout.RootPanel.Orientation == Orientation.Vertical)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
-								layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Vertical)
+								layoutAnchorablePaneGroup.Orientation == Orientation.Vertical)
 							{
 								var childrenToTransfer = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < childrenToTransfer.Length; i++)
@@ -169,7 +178,7 @@ namespace AvalonDock.Controls
 						{
 							var newOrientedPanel = new LayoutPanel()
 							{
-								Orientation = System.Windows.Controls.Orientation.Vertical
+								Orientation = Orientation.Vertical
 							};
 
 							newOrientedPanel.Children.Add(floatingWindow.RootPanel);
@@ -194,7 +203,18 @@ namespace AvalonDock.Controls
 			var layoutAnchorablePane = anchorableFloatingWindowModel.RootPanel as ILayoutPositionableElement;
 			var layoutAnchorablePaneWithActualSize = anchorableFloatingWindowModel.RootPanel as ILayoutPositionableElementWithActualSize;
 
+#if AVALONIA
+			// Work in the device independent coordinates of the overlay: the preferred sizes below are DIPs.
+			// The preview targets the area of the root panel, which is where a pane docked at the outer edge
+			// of the manager ends up; the side bars around it are not part of that area.
+			var targetElement = TargetElement.LayoutRootPanel is Visual rootPanel && rootPanel.IsEffectivelyVisible
+				? rootPanel
+				: (Visual)TargetElement;
+			var targetScreenRect = targetElement.GetScreenArea();
+#else
 			var targetScreenRect = TargetElement.GetScreenArea();
+#endif
+			targetScreenRect = ToOverlay(overlayWindow, targetScreenRect);
 
 			// Preferred dock size used by the outer-edge rules: width for Left/Right, height for Top/Bottom.
 			var preferredSize = Type == DropTargetType.DockingManagerDockTop || Type == DropTargetType.DockingManagerDockBottom
@@ -212,8 +232,8 @@ namespace AvalonDock.Controls
 				out var height))
 			{
 				var previewBoxRect = new Rect(
-					targetScreenRect.Left - overlayWindow.Left + left,
-					targetScreenRect.Top - overlayWindow.Top + top,
+					targetScreenRect.Left + left,
+					targetScreenRect.Top + top,
 					width,
 					height);
 

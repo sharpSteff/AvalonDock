@@ -1,9 +1,17 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Metadata;
+using Avalonia.Media;
+using FrameworkElement = Avalonia.Controls.Control;
+using ImageSource = Avalonia.Media.IImage;
+#else
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Media;
+#endif
 using System.Xml.Serialization;
 using AvalonDock.Controls;
 
@@ -12,7 +20,9 @@ namespace AvalonDock.Layout
 	/// <summary>
 	/// Provides a base class for layout content.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Content))]
+#endif
 	[Serializable]
 	public abstract class LayoutContent : LayoutElement, ILayoutElementForFloatingWindow, IComparable<LayoutContent>, ILayoutPreviousContainer, Core.Serialization.ISerializableLayoutContent, Core.Serialization.ISerializablePreviousContainer
 	{
@@ -41,7 +51,11 @@ namespace AvalonDock.Layout
 		/// <summary>
 		/// Identifies the <see cref="Title"/> dependency property.
 		/// </summary>
+#if AVALONIA
+		public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<LayoutContent, string>(nameof(Title), coerce: CoerceTitleValue);
+#else
 		public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(nameof(Title), typeof(string), typeof(LayoutContent), new UIPropertyMetadata(null, OnTitlePropertyChanged, CoerceTitleValue));
+#endif
 
 		/// <summary>
 		/// Gets or sets the title.
@@ -58,19 +72,35 @@ namespace AvalonDock.Layout
 		/// <param name="obj">The object instance.</param>
 		/// <param name="value">The value.</param>
 		/// <returns>The resulting value.</returns>
+#if AVALONIA
+		private static string CoerceTitleValue(AvaloniaObject obj, string value)
+#else
 		private static object CoerceTitleValue(DependencyObject obj, object value)
+#endif
 		{
 			var lc = (LayoutContent)obj;
 			if ((string)value != lc.Title) lc.RaisePropertyChanging(TitleProperty.Name);
 			return value;
 		}
 
+#if AVALONIA
+		/// <inheritdoc/>
+		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+		{
+			base.OnPropertyChanged(change);
+			if (change.Property == TitleProperty)
+				RaisePropertyChanged(TitleProperty.Name);
+			else if (change.Property == ContentIdProperty)
+				OnContentIdPropertyChanged((string)change.OldValue, (string)change.NewValue);
+		}
+#else
 		/// <summary>
 		/// Executes the on title property changed operation.
 		/// </summary>
 		/// <param name="obj">The object instance.</param>
 		/// <param name="args">The event arguments.</param>
 		private static void OnTitlePropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args) => ((LayoutContent)obj).RaisePropertyChanged(TitleProperty.Name);
+#endif
 
 		[NonSerialized]
 		private object _content = null;
@@ -79,6 +109,9 @@ namespace AvalonDock.Layout
 		/// Gets or sets the content.
 		/// </summary>
 		[XmlIgnore]
+#if AVALONIA
+		[Content]
+#endif
 		public object Content
 		{
 			get => _content;
@@ -95,7 +128,11 @@ namespace AvalonDock.Layout
 		/// <summary>
 		/// Identifies the <see cref="ContentId"/> dependency property.
 		/// </summary>
+#if AVALONIA
+		public static readonly StyledProperty<string> ContentIdProperty = AvaloniaProperty.Register<LayoutContent, string>(nameof(ContentId));
+#else
 		public static readonly DependencyProperty ContentIdProperty = DependencyProperty.Register(nameof(ContentId), typeof(string), typeof(LayoutContent), new UIPropertyMetadata(null, OnContentIdPropertyChanged));
+#endif
 
 		/// <summary>
 		/// Gets or sets the content id.
@@ -113,6 +150,7 @@ namespace AvalonDock.Layout
 			set => SetValue(ContentIdProperty, value);
 		}
 
+#if !AVALONIA
 		/// <summary>
 		/// Executes the on content id property changed operation.
 		/// </summary>
@@ -122,6 +160,7 @@ namespace AvalonDock.Layout
 		{
 			if (obj is LayoutContent layoutContent) layoutContent.OnContentIdPropertyChanged((string)args.OldValue, (string)args.NewValue);
 		}
+#endif
 
 		/// <summary>
 		/// Executes the on content id property changed operation.
@@ -159,7 +198,9 @@ namespace AvalonDock.Layout
 				if (Parent is ILayoutContentSelector parentSelector) parentSelector.SelectedContentIndex = _isSelected ? parentSelector.IndexOf(this) : -1;
 				OnIsSelectedChanged(oldValue, value);
 				RaisePropertyChanged(nameof(IsSelected));
+#if !AVALONIA
 				LayoutAnchorableTabItem.CancelMouseLeave();
+#endif
 			}
 		}
 
@@ -766,7 +807,7 @@ namespace AvalonDock.Layout
 		object Core.Serialization.ISerializableLayoutContent.IconSource
 		{
 			get => IconSource;
-			set => IconSource = value as System.Windows.Media.ImageSource;
+			set => IconSource = value as ImageSource;
 		}
 
 		/// <inheritdoc/>

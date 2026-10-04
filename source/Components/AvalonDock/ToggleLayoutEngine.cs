@@ -1,8 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows;
 using System.Windows.Controls;
+#endif
 using AvalonDock.Core;
 using AvalonDock.Layout;
 

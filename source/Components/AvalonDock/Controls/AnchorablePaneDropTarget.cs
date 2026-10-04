@@ -1,7 +1,16 @@
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Layout;
+using Avalonia.Media;
+#else
 using System.Windows;
 using System.Windows.Media;
+#endif
 using AvalonDock.Layout;
+#if !AVALONIA
+using Orientation = System.Windows.Controls.Orientation;
+#endif
 
 namespace AvalonDock.Controls
 {
@@ -60,16 +69,16 @@ namespace AvalonDock.Controls
 						var parentModelOrientable = targetModel.Parent as ILayoutOrientableGroup;
 						int insertToIndex = parentModel.IndexOfChild(targetModel);
 
-						if (parentModelOrientable.Orientation != System.Windows.Controls.Orientation.Vertical &&
+						if (parentModelOrientable.Orientation != Orientation.Vertical &&
 							parentModel.ChildrenCount == 1)
-							parentModelOrientable.Orientation = System.Windows.Controls.Orientation.Vertical;
+							parentModelOrientable.Orientation = Orientation.Vertical;
 
-						if (parentModelOrientable.Orientation == System.Windows.Controls.Orientation.Vertical)
+						if (parentModelOrientable.Orientation == Orientation.Vertical)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
 								(layoutAnchorablePaneGroup.Children.Count == 1 ||
-									layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Vertical))
+									layoutAnchorablePaneGroup.Orientation == Orientation.Vertical))
 							{
 								var anchorablesToMove = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < anchorablesToMove.Length; i++)
@@ -85,7 +94,7 @@ namespace AvalonDock.Controls
 							var targetModelAsPositionableElement = targetModel as ILayoutPositionableElement;
 							var newOrientedPanel = new LayoutAnchorablePaneGroup()
 							{
-								Orientation = System.Windows.Controls.Orientation.Vertical,
+								Orientation = Orientation.Vertical,
 								DockWidth = targetModelAsPositionableElement.DockWidth,
 								DockHeight = targetModelAsPositionableElement.DockHeight,
 							};
@@ -104,16 +113,16 @@ namespace AvalonDock.Controls
 						var parentModelOrientable = targetModel.Parent as ILayoutOrientableGroup;
 						int insertToIndex = parentModel.IndexOfChild(targetModel);
 
-						if (parentModelOrientable.Orientation != System.Windows.Controls.Orientation.Vertical &&
+						if (parentModelOrientable.Orientation != Orientation.Vertical &&
 							parentModel.ChildrenCount == 1)
-							parentModelOrientable.Orientation = System.Windows.Controls.Orientation.Vertical;
+							parentModelOrientable.Orientation = Orientation.Vertical;
 
-						if (parentModelOrientable.Orientation == System.Windows.Controls.Orientation.Vertical)
+						if (parentModelOrientable.Orientation == Orientation.Vertical)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
 								(layoutAnchorablePaneGroup.Children.Count == 1 ||
-									layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Vertical))
+									layoutAnchorablePaneGroup.Orientation == Orientation.Vertical))
 							{
 								var anchorablesToMove = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < anchorablesToMove.Length; i++)
@@ -129,7 +138,7 @@ namespace AvalonDock.Controls
 							var targetModelAsPositionableElement = targetModel as ILayoutPositionableElement;
 							var newOrientedPanel = new LayoutAnchorablePaneGroup()
 							{
-								Orientation = System.Windows.Controls.Orientation.Vertical,
+								Orientation = Orientation.Vertical,
 								DockWidth = targetModelAsPositionableElement.DockWidth,
 								DockHeight = targetModelAsPositionableElement.DockHeight,
 							};
@@ -149,16 +158,16 @@ namespace AvalonDock.Controls
 						var parentModelOrientable = targetModel.Parent as ILayoutOrientableGroup;
 						int insertToIndex = parentModel.IndexOfChild(targetModel);
 
-						if (parentModelOrientable.Orientation != System.Windows.Controls.Orientation.Horizontal &&
+						if (parentModelOrientable.Orientation != Orientation.Horizontal &&
 							parentModel.ChildrenCount == 1)
-							parentModelOrientable.Orientation = System.Windows.Controls.Orientation.Horizontal;
+							parentModelOrientable.Orientation = Orientation.Horizontal;
 
-						if (parentModelOrientable.Orientation == System.Windows.Controls.Orientation.Horizontal)
+						if (parentModelOrientable.Orientation == Orientation.Horizontal)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
 								(layoutAnchorablePaneGroup.Children.Count == 1 ||
-									layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Horizontal))
+									layoutAnchorablePaneGroup.Orientation == Orientation.Horizontal))
 							{
 								var anchorablesToMove = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < anchorablesToMove.Length; i++)
@@ -174,7 +183,7 @@ namespace AvalonDock.Controls
 							var targetModelAsPositionableElement = targetModel as ILayoutPositionableElement;
 							var newOrientedPanel = new LayoutAnchorablePaneGroup()
 							{
-								Orientation = System.Windows.Controls.Orientation.Horizontal,
+								Orientation = Orientation.Horizontal,
 								DockWidth = targetModelAsPositionableElement.DockWidth,
 								DockHeight = targetModelAsPositionableElement.DockHeight,
 							};
@@ -194,16 +203,16 @@ namespace AvalonDock.Controls
 						var parentModelOrientable = targetModel.Parent as ILayoutOrientableGroup;
 						int insertToIndex = parentModel.IndexOfChild(targetModel);
 
-						if (parentModelOrientable.Orientation != System.Windows.Controls.Orientation.Horizontal &&
+						if (parentModelOrientable.Orientation != Orientation.Horizontal &&
 							parentModel.ChildrenCount == 1)
-							parentModelOrientable.Orientation = System.Windows.Controls.Orientation.Horizontal;
+							parentModelOrientable.Orientation = Orientation.Horizontal;
 
-						if (parentModelOrientable.Orientation == System.Windows.Controls.Orientation.Horizontal)
+						if (parentModelOrientable.Orientation == Orientation.Horizontal)
 						{
 							var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
 							if (layoutAnchorablePaneGroup != null &&
 								(layoutAnchorablePaneGroup.Children.Count == 1 ||
-									layoutAnchorablePaneGroup.Orientation == System.Windows.Controls.Orientation.Horizontal))
+									layoutAnchorablePaneGroup.Orientation == Orientation.Horizontal))
 							{
 								var anchorablesToMove = layoutAnchorablePaneGroup.Children.ToArray();
 								for (int i = 0; i < anchorablesToMove.Length; i++)
@@ -219,7 +228,7 @@ namespace AvalonDock.Controls
 							var targetModelAsPositionableElement = targetModel as ILayoutPositionableElement;
 							var newOrientedPanel = new LayoutAnchorablePaneGroup()
 							{
-								Orientation = System.Windows.Controls.Orientation.Horizontal,
+								Orientation = Orientation.Horizontal,
 								DockWidth = targetModelAsPositionableElement.DockWidth,
 								DockHeight = targetModelAsPositionableElement.DockHeight,
 							};
@@ -266,8 +275,7 @@ namespace AvalonDock.Controls
 				case DropTargetType.AnchorablePaneDockLeft:
 				case DropTargetType.AnchorablePaneDockRight:
 					{
-						var targetScreenRect = TargetElement.GetScreenArea();
-						targetScreenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+						var targetScreenRect = ToOverlay(overlayWindow, TargetElement.GetScreenArea());
 
 						if (OverlayPreviewRules.TryComputePanePreviewRect(
 							Type,
@@ -290,8 +298,7 @@ namespace AvalonDock.Controls
 
 				case DropTargetType.AnchorablePaneDockInside:
 					{
-						var targetScreenRect = TargetElement.GetScreenArea();
-						targetScreenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+						var targetScreenRect = ToOverlay(overlayWindow, TargetElement.GetScreenArea());
 
 						if (_tabIndex == -1)
 						{
@@ -299,23 +306,17 @@ namespace AvalonDock.Controls
 						}
 						else
 						{
-							var translatedDetectionRect = new Rect(DetectionRects[0].TopLeft, DetectionRects[0].BottomRight);
-							translatedDetectionRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+							var translatedDetectionRect = ToOverlay(overlayWindow, DetectionRects[0]);
 
-							var pathFigure = new PathFigure();
-							pathFigure.StartPoint = targetScreenRect.TopLeft;
-							pathFigure.Segments.Add(new LineSegment() { Point = new Point(targetScreenRect.Left, translatedDetectionRect.Top) });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.TopLeft });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.BottomLeft });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.BottomRight });
-							pathFigure.Segments.Add(new LineSegment() { Point = translatedDetectionRect.TopRight });
-							pathFigure.Segments.Add(new LineSegment() { Point = new Point(targetScreenRect.Right, translatedDetectionRect.Top) });
-							pathFigure.Segments.Add(new LineSegment() { Point = targetScreenRect.TopRight });
-							pathFigure.IsClosed = true;
-							pathFigure.IsFilled = true;
-							pathFigure.Freeze();
-
-							return new PathGeometry(new PathFigure[] { pathFigure });
+							return CreatePolygon(
+								targetScreenRect.TopLeft,
+								new Point(targetScreenRect.Left, translatedDetectionRect.Top),
+								translatedDetectionRect.TopLeft,
+								translatedDetectionRect.BottomLeft,
+								translatedDetectionRect.BottomRight,
+								translatedDetectionRect.TopRight,
+								new Point(targetScreenRect.Right, translatedDetectionRect.Top),
+								targetScreenRect.TopRight);
 						}
 					}
 			}

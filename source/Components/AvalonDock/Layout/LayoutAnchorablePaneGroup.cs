@@ -1,14 +1,21 @@
 ﻿using System;
 using System.Linq;
+#if AVALONIA
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows.Controls;
 using System.Windows.Markup;
+#endif
 
 namespace AvalonDock.Layout
 {
 	/// <summary>
 	/// Represents a layout anchorable pane group.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Children))]
+#endif
 	[Serializable]
 	public class LayoutAnchorablePaneGroup : LayoutPositionableGroup<ILayoutAnchorablePane>, ILayoutAnchorablePane, ILayoutOrientableGroup
 	{

@@ -1,6 +1,12 @@
 using System;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows;
 using System.Windows.Controls;
+#endif
 using AvalonDock.Layout;
 
 namespace AvalonDock.Controls
@@ -25,7 +31,11 @@ namespace AvalonDock.Controls
 		/// <inheritdoc/>
 		protected override void OnFixChildrenDockLengths()
 		{
+#if AVALONIA
+			if (Bounds.Width == 0.0 || Bounds.Height == 0.0) return;
+#else
 			if (ActualWidth == 0.0 || ActualHeight == 0.0) return;
+#endif
 
 			if (_model.Orientation == Orientation.Horizontal)
 			{
@@ -45,8 +55,11 @@ namespace AvalonDock.Controls
 							var childPositionableModelWidthActualSize = _model.Children[i] as ILayoutPositionableElement as ILayoutPositionableElementWithActualSize;
 							var childDockMinWidth = (_model.Children[i] as ILayoutPositionableElement).CalculatedDockMinWidth();
 							var widthToSet = Math.Max(childPositionableModelWidthActualSize.ActualWidth, childDockMinWidth);
-
+#if AVALONIA
+							widthToSet = Math.Min(widthToSet, Bounds.Width / 2.0);
+#else
 							widthToSet = Math.Min(widthToSet, ActualWidth / 2.0);
+#endif
 							widthToSet = Math.Max(widthToSet, childDockMinWidth);
 							(_model.Children[i] as ILayoutPositionableElement).DockWidth = new GridLength(widthToSet, GridUnitType.Pixel);
 						}
@@ -83,7 +96,11 @@ namespace AvalonDock.Controls
 							var childPositionableModelWidthActualSize = _model.Children[i] as ILayoutPositionableElement as ILayoutPositionableElementWithActualSize;
 							var childDockMinHeight = (_model.Children[i] as ILayoutPositionableElement).CalculatedDockMinHeight();
 							var heightToSet = Math.Max(childPositionableModelWidthActualSize.ActualHeight, childDockMinHeight);
+#if AVALONIA
+							heightToSet = Math.Min(heightToSet, Bounds.Height / 2.0);
+#else
 							heightToSet = Math.Min(heightToSet, ActualHeight / 2.0);
+#endif
 							heightToSet = Math.Max(heightToSet, childDockMinHeight);
 							(_model.Children[i] as ILayoutPositionableElement).DockHeight = new GridLength(heightToSet, GridUnitType.Pixel);
 						}

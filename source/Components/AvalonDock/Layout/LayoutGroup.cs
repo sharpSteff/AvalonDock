@@ -1,4 +1,9 @@
+﻿#if AVALONIA
+using Avalonia.Metadata;
 ﻿using System;
+#else
+using System;
+#endif
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -28,6 +33,9 @@ namespace AvalonDock.Layout
 		/// <summary>
 		/// Gets the children.
 		/// </summary>
+#if AVALONIA
+		[Content]
+#endif
 		public ObservableCollection<T> Children => _children;
 
 		/// <summary>

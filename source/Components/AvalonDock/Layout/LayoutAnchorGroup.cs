@@ -1,5 +1,7 @@
 ﻿using System;
+#if !AVALONIA
 using System.Windows.Markup;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout
@@ -7,7 +9,9 @@ namespace AvalonDock.Layout
 	/// <summary>
 	/// Represents a layout anchor group.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Children))]
+#endif
 	[Serializable]
 	public class LayoutAnchorGroup : LayoutGroup<LayoutAnchorable>, ILayoutPreviousContainer, ILayoutPaneSerializable, Core.Serialization.ISerializableLayoutPane
 	{

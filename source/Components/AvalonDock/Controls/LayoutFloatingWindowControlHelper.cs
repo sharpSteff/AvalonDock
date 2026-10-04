@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+#else
 using System.Windows;
 using System.Windows.Input;
+#endif
 
 using AvalonDock.Layout;
 
@@ -157,8 +162,20 @@ namespace AvalonDock.Controls
 		}
 
 		private static T GetLayoutControlByMousePosition<T>(LayoutFloatingWindowControl fwc)
+#if AVALONIA
+			where T : Control, ILayoutControl
+#else
 			where T : FrameworkElement, ILayoutControl
+#endif
 		{
+#if AVALONIA
+			// Avalonia has no global pointer position; the pane that holds keyboard focus, or else the first
+			// pane, is the one to activate.
+			var focused = TopLevel.GetTopLevel(fwc)?.FocusManager?.GetFocusedElement() as Visual;
+			var focusedPane = focused?.FindVisualAncestor<T>();
+			if (focusedPane != null) return focusedPane;
+			return (fwc.Content as Visual)?.FindVisualChildren<T>().FirstOrDefault();
+#else
 			var mousePosition = fwc.PointToScreenDPI(Mouse.GetPosition(fwc));
 			var rootVisual = ((LayoutFloatingWindowControl.FloatingWindowContentHost)fwc.Content).RootVisual;
 
@@ -172,6 +189,7 @@ namespace AvalonDock.Controls
 			}
 
 			return null;
+#endif
 		}
 
 		private static int IndexOfLastActivedContent<T>(IList<T> list)

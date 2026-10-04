@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+#if AVALONIA
+using Avalonia;
+#else
 using System.Windows;
 using System.Windows.Media;
+#endif
 
 namespace AvalonDock
 {
@@ -59,6 +63,7 @@ namespace AvalonDock
 		public static V GetValueOrDefault<V>(this WeakReference wr)
 		{
 			return wr == null || !wr.IsAlive ? default : (V)wr.Target;
+#if !AVALONIA
 		}
 
 		/// <summary>
@@ -106,6 +111,7 @@ namespace AvalonDock
 				if (dependencyObject != null)
 					yield return dependencyObject;
 			}
+#endif
 		}
 
 		/// <summary>

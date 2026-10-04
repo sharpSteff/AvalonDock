@@ -1,7 +1,13 @@
 using System;
 using System.Globalization;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+#else
 using System.Windows;
 using System.Windows.Controls;
+#endif
 using AvalonDock.Core.Serialization;
 using AvalonDock.Core.Serialization.Dto;
 using AvalonDock.Layout;
@@ -13,7 +19,36 @@ namespace AvalonDock.Serialization
 	/// </summary>
 	public class LayoutDtoMapper : ILayoutDtoMapper
 	{
+#if AVALONIA
+		/// <summary>
+		/// Converts grid lengths to and from the strings WPF's <c>GridLengthConverter</c> uses, so that layouts
+		/// written by either the WPF or the Avalonia library can be read by both.
+		/// </summary>
+		private static class GridLengthConverter
+		{
+			public static string ConvertToInvariantString(GridLength length)
+			{
+				if (length.IsAuto) return "Auto";
+				var value = length.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+				if (length.IsStar) return length.Value == 1.0 ? "*" : value + "*";
+				return value;
+			}
+
+			public static object ConvertFromInvariantString(string value)
+			{
+				try
+				{
+					return GridLength.Parse(value);
+				}
+				catch (FormatException)
+				{
+					return null;
+				}
+			}
+		}
+#else
 		private static readonly GridLengthConverter GridLengthConverter = new GridLengthConverter();
+#endif
 
 		/// <inheritdoc/>
 		public LayoutRootDto ToDto(ISerializableLayoutRoot layout)

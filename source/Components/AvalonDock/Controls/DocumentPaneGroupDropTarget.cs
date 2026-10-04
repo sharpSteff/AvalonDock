@@ -1,6 +1,12 @@
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Layout;
+using Avalonia.Media;
+#else
 using System.Windows;
 using System.Windows.Media;
+#endif
 using AvalonDock.Layout;
 
 namespace AvalonDock.Controls
@@ -87,8 +93,7 @@ namespace AvalonDock.Controls
 			{
 				case DropTargetType.DocumentPaneGroupDockInside:
 					{
-						var targetScreenRect = TargetElement.GetScreenArea();
-						targetScreenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+						var targetScreenRect = ToOverlay(overlayWindow, TargetElement.GetScreenArea());
 
 						return new RectangleGeometry(targetScreenRect);
 					}

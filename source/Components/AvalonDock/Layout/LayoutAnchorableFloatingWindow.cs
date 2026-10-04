@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+#if AVALONIA
+using Avalonia.Metadata;
+#else
 using System.Windows.Markup;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout
@@ -11,7 +15,9 @@ namespace AvalonDock.Layout
 	/// Represents a layout anchorable floating window.
 	/// </summary>
 	[Serializable]
+#if !AVALONIA
 	[ContentProperty(nameof(RootPanel))]
+#endif
 	public class LayoutAnchorableFloatingWindow : LayoutFloatingWindow, ILayoutElementWithVisibility
 	{
 		private LayoutAnchorablePaneGroup _rootPanel;
@@ -49,6 +55,9 @@ namespace AvalonDock.Layout
 		/// <summary>
 		/// Gets or sets the root panel.
 		/// </summary>
+#if AVALONIA
+		[Content]
+#endif
 		public LayoutAnchorablePaneGroup RootPanel
 		{
 			get => _rootPanel;

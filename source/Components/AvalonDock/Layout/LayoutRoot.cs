@@ -4,8 +4,14 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+#if AVALONIA
+using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Metadata;
+#else
 using System.Windows.Controls;
 using System.Windows.Markup;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout
@@ -13,7 +19,9 @@ namespace AvalonDock.Layout
 	/// <summary>
 	/// Represents a layout root.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(RootPanel))]
+#endif
 	[Serializable]
 	public class LayoutRoot : LayoutElement, ILayoutContainer, ILayoutRoot, Core.Serialization.ISerializableLayoutRoot
 	{
@@ -67,6 +75,9 @@ namespace AvalonDock.Layout
 		/// <summary>
 		/// Gets or sets the root panel.
 		/// </summary>
+#if AVALONIA
+		[Content]
+#endif
 		public LayoutPanel RootPanel
 		{
 			get => _rootPanel;

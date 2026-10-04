@@ -1,9 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Threading;
+#else
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+#endif
 using AvalonDock.Layout;
 
 namespace AvalonDock.Controls
@@ -13,7 +21,11 @@ namespace AvalonDock.Controls
 	/// </summary>
 	/// <typeparam name="T">The type of t.</typeparam>
 	internal abstract class DropTarget<T> : DropTargetBase, IDropTarget
+#if AVALONIA
+		where T : Control
+#else
 		where T : FrameworkElement
+#endif
 	{
 		private Rect[] _detectionRect;
 		private T _targetElement;
@@ -101,7 +113,11 @@ namespace AvalonDock.Controls
 		/// <returns>true if the specified point intersects the target; otherwise, false.</returns>
 		public bool HitTestScreen(Point dragPoint)
 		{
+#if AVALONIA
+			return HitTest(dragPoint);
+#else
 			return HitTest(_targetElement.TransformToDeviceDPI(dragPoint));
+#endif
 		}
 
 		/// <summary>
@@ -155,13 +171,61 @@ namespace AvalonDock.Controls
 
 			if (currentActiveContent == null)
 				return;
+#if AVALONIA
+			Dispatcher.UIThread.Post(
+				() =>
+#else
 			Dispatcher.BeginInvoke(
 				new Action(() =>
+#endif
 				{
 					currentActiveContent.IsSelected = false;
 					currentActiveContent.IsActive = false;
 					currentActiveContent.IsActive = true;
+#if AVALONIA
+				}, DispatcherPriority.Background);
+#else
 				}), DispatcherPriority.Background);
+#endif
+		}
+
+		/// <summary>
+		/// Converts a rectangle in screen coordinates to the coordinates of the overlay window, in which
+		/// the preview paths are drawn.
+		/// </summary>
+		/// <param name="overlayWindow">The overlay window.</param>
+		/// <param name="screenRect">The rectangle in screen coordinates.</param>
+		/// <returns>The rectangle relative to the overlay window.</returns>
+		protected static Rect ToOverlay(OverlayWindow overlayWindow, Rect screenRect)
+		{
+#if AVALONIA
+			return overlayWindow.ScreenToLocal(screenRect);
+#else
+			screenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+			return screenRect;
+#endif
+		}
+
+		/// <summary>
+		/// Creates a closed and filled polygon for a preview path.
+		/// </summary>
+		/// <param name="startPoint">The first point.</param>
+		/// <param name="points">The other points, in order.</param>
+		/// <returns>The geometry.</returns>
+		protected static Geometry CreatePolygon(Point startPoint, params Point[] points)
+		{
+			var pathFigure = new PathFigure { StartPoint = startPoint, IsClosed = true, IsFilled = true };
+#if AVALONIA
+			pathFigure.Segments = new PathSegments();
+#endif
+			foreach (var point in points)
+				pathFigure.Segments.Add(new LineSegment() { Point = point });
+#if AVALONIA
+			return new PathGeometry { Figures = new PathFigures { pathFigure } };
+#else
+			pathFigure.Freeze();
+			return new PathGeometry(new PathFigure[] { pathFigure });
+#endif
 		}
 
 		/// <summary>

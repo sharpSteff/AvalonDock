@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+#if !AVALONIA
 using System.Windows.Markup;
+#endif
 using System.Xml.Serialization;
 
 namespace AvalonDock.Layout
@@ -9,7 +11,9 @@ namespace AvalonDock.Layout
 	/// <summary>
 	/// Represents a layout document pane.
 	/// </summary>
+#if !AVALONIA
 	[ContentProperty(nameof(Children))]
+#endif
 	[Serializable]
 	public class LayoutDocumentPane : LayoutPositionableGroup<LayoutContent>, ILayoutDocumentPane, ILayoutPositionableElement, ILayoutContentSelector, ILayoutPaneSerializable, Core.Serialization.ISerializableLayoutPane
 	{

@@ -1,4 +1,8 @@
-﻿using System.Windows;
+﻿#if AVALONIA
+using Avalonia;
+#else
+using System.Windows;
+#endif
 
 namespace AvalonDock.Layout
 {
