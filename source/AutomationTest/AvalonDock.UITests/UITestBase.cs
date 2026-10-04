@@ -179,13 +179,16 @@ public abstract class UITestBase
 	/// <summary>
 	/// The visible header of a tool window: its tab, its pane title or its auto-hide side button.
 	/// </summary>
-	protected async Task<ElementInfo?> FindToolWindowHeaderAsync(string title)
+	protected async Task<ElementInfo?> FindToolWindowHeaderAsync(string title, bool preferPaneTitle = false)
 	{
 		var roots = await GetTreeAsync();
 
 		// In order of preference: a tab selects the tool window without touching the pane's buttons. A floating
 		// window with a single tool window shows its title in the window's title bar.
-		foreach (var type in new[] { "LayoutAnchorableTabItem", "LayoutAnchorControl", "AnchorablePaneTitle", "LayoutAnchorableFloatingWindowControl" })
+		var types = preferPaneTitle
+			? new[] { "AnchorablePaneTitle", "LayoutAnchorableTabItem", "LayoutAnchorControl", "LayoutAnchorableFloatingWindowControl" }
+			: new[] { "LayoutAnchorableTabItem", "LayoutAnchorControl", "AnchorablePaneTitle", "LayoutAnchorableFloatingWindowControl" };
+		foreach (var type in types)
 		{
 			foreach (var root in roots)
 			{
@@ -208,7 +211,19 @@ public abstract class UITestBase
 	/// <summary>Selects a tool window by clicking its header, and waits until the layout model has it selected.</summary>
 	protected async Task ActivateToolWindowAsync(string title)
 	{
-		await TapToolWindowHeaderAsync(title);
+		// A tool window that is already selected is activated through its pane's title. Clicking its tab
+		// again can re-lay out the tabs of a narrow pane under the pointer while the button is down, which
+		// WPF takes for the start of a drag and floats the tool window.
+		if ((await FindContentAsync(title))?.IsSelected == true
+			&& await FindToolWindowHeaderAsync(title, preferPaneTitle: true) is { Type: "AnchorablePaneTitle" } paneTitle)
+		{
+			await TapAsync(FindDescendant(paneTitle, e => e.IsVisible && e.Text == title) ?? paneTitle);
+		}
+		else
+		{
+			await TapToolWindowHeaderAsync(title);
+		}
+
 		await WaitUntilAsync(async () => (await FindContentAsync(title))?.IsSelected == true, $"'{title}' to be selected");
 	}
 
@@ -243,16 +258,16 @@ public abstract class UITestBase
 				return;
 
 			await TapAsync(textBox);
-			try
+			var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(3);
+			while (DateTime.UtcNow < deadline)
 			{
-				await WaitUntilAsync(async () => (await FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && predicate(e)))?.IsFocused == true,
-					$"{description} to have the keyboard focus", TimeSpan.FromSeconds(3));
-				return;
-			}
-			catch (AssertionException) when (attempt < 2)
-			{
+				if ((await FindElementAsync(e => e.Type == "TextBox" && e.IsVisible && predicate(e)))?.IsFocused == true)
+					return;
+				await Task.Delay(200);
 			}
 		}
+
+		Assert.Fail($"Timed out waiting for {description} to have the keyboard focus.");
 	}
 
 	protected async Task PressKeyAsync(string key)
