@@ -1,18 +1,28 @@
 using System;
 using System.IO;
 using System.Linq;
+#if !AVALONIA
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+#endif
 using System.Xml.Linq;
 using AvalonDock;
 using AvalonDock.Core;
 using AvalonDock.DependencyInjection;
 using AvalonDock.Serializer.Xml;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Styling;
+#else
 using AvalonDock.Themes;
 using AvalonDock.Themes.VS;
+#endif
 using ToggleTestApp.ViewModels;
 
 namespace ToggleTestApp
@@ -21,6 +31,10 @@ namespace ToggleTestApp
 	{
 		public MainWindow(MainViewModel viewModel, ToggleDockOptions? dockOptions = null)
 		{
+#if AVALONIA
+			// WPF sets the initial colours in MainWindow.xaml.
+			SetAppThemeResources(isDark: true);
+#endif
 			DataContext = viewModel;
 			InitializeComponent();
 
@@ -38,7 +52,9 @@ namespace ToggleTestApp
 				}
 			}
 
+#if !AVALONIA
 			ContentRendered += (_, _) => UpdateTitleBarColor();
+#endif
 		}
 
 		private void OnLayoutPriorityChanged(object sender, RoutedEventArgs e)
@@ -55,6 +71,18 @@ namespace ToggleTestApp
 				dockManager.LayoutPriority = DockLayoutPriority.Default;
 		}
 
+#if AVALONIA
+		private void OnThemeChanged(object? sender, RoutedEventArgs e)
+		{
+			// The Avalonia build has one theme, in a dark and a light variant.
+			menuDark.IsChecked = sender == menuDark;
+			menuLight.IsChecked = sender == menuLight;
+
+			var isDark = sender != menuLight;
+			Application.Current!.RequestedThemeVariant = isDark ? ThemeVariant.Dark : ThemeVariant.Light;
+			SetAppThemeResources(isDark);
+		}
+#else
 		private void OnThemeChanged(object sender, RoutedEventArgs e)
 		{
 			menuArcDark.IsChecked = sender == menuArcDark;
@@ -96,39 +124,47 @@ namespace ToggleTestApp
 			SetAppThemeResources(isDark);
 			UpdateThemeColors();
 		}
+#endif
 
 		private void SetAppThemeResources(bool isDark)
 		{
+#if AVALONIA
+			// Application resources, so tool windows in floating windows find them too.
+			var resources = Application.Current!.Resources;
+#else
+			var resources = Resources;
+#endif
 			if (isDark)
 			{
-				Resources["AppPanelBg"] = Brush("#252526");
-				Resources["AppEditorBg"] = Brush("#1E1E1E");
-				Resources["AppInputBg"] = Brush("#3C3C3C");
-				Resources["AppInputBarBg"] = Brush("#2D2D2D");
-				Resources["AppText"] = Brush("#CCCCCC");
-				Resources["AppSubText"] = Brush("#808080");
-				Resources["AppDimText"] = Brush("#555555");
-				Resources["AppEditorText"] = Brush("#D4D4D4");
-				Resources["AppLineNumbers"] = Brush("#858585");
-				Resources["AppScrollbarBg"] = Brush("#2B2B2B");
-				Resources["AppSelection"] = Brush("#094771");
+				resources["AppPanelBg"] = Brush("#252526");
+				resources["AppEditorBg"] = Brush("#1E1E1E");
+				resources["AppInputBg"] = Brush("#3C3C3C");
+				resources["AppInputBarBg"] = Brush("#2D2D2D");
+				resources["AppText"] = Brush("#CCCCCC");
+				resources["AppSubText"] = Brush("#808080");
+				resources["AppDimText"] = Brush("#555555");
+				resources["AppEditorText"] = Brush("#D4D4D4");
+				resources["AppLineNumbers"] = Brush("#858585");
+				resources["AppScrollbarBg"] = Brush("#2B2B2B");
+				resources["AppSelection"] = Brush("#094771");
 			}
 			else
 			{
-				Resources["AppPanelBg"] = Brush("#F5F5F5");
-				Resources["AppEditorBg"] = Brush("#FFFFFF");
-				Resources["AppInputBg"] = Brush("#FFFFFF");
-				Resources["AppInputBarBg"] = Brush("#E8E8E8");
-				Resources["AppText"] = Brush("#1E1E1E");
-				Resources["AppSubText"] = Brush("#616161");
-				Resources["AppDimText"] = Brush("#999999");
-				Resources["AppEditorText"] = Brush("#1E1E1E");
-				Resources["AppLineNumbers"] = Brush("#858585");
-				Resources["AppScrollbarBg"] = Brush("#E0E0E0");
-				Resources["AppSelection"] = Brush("#B4D8FD");
+				resources["AppPanelBg"] = Brush("#F5F5F5");
+				resources["AppEditorBg"] = Brush("#FFFFFF");
+				resources["AppInputBg"] = Brush("#FFFFFF");
+				resources["AppInputBarBg"] = Brush("#E8E8E8");
+				resources["AppText"] = Brush("#1E1E1E");
+				resources["AppSubText"] = Brush("#616161");
+				resources["AppDimText"] = Brush("#999999");
+				resources["AppEditorText"] = Brush("#1E1E1E");
+				resources["AppLineNumbers"] = Brush("#858585");
+				resources["AppScrollbarBg"] = Brush("#E0E0E0");
+				resources["AppSelection"] = Brush("#B4D8FD");
 			}
 		}
 
+#if !AVALONIA
 		private void UpdateThemeColors()
 		{
 			Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
@@ -177,12 +213,18 @@ namespace ToggleTestApp
 			return true;
 		}
 
+#endif
+
 		private static SolidColorBrush Brush(string hex)
 		{
+#if AVALONIA
+			return new SolidColorBrush(Color.Parse(hex));
+#else
 			var color = (Color)ColorConverter.ConvertFromString(hex);
 			var brush = new SolidColorBrush(color);
 			brush.Freeze();
 			return brush;
+#endif
 		}
 
 		private void OnExit(object sender, RoutedEventArgs e) => Close();

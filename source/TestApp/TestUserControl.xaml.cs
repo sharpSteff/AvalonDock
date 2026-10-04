@@ -1,5 +1,10 @@
-﻿using System.Windows;
+﻿#if AVALONIA
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+#else
+using System.Windows;
 using System.Windows.Controls;
+#endif
 
 namespace TestApp
 {
@@ -12,8 +17,8 @@ namespace TestApp
 		{
 			InitializeComponent();
 
-			this.Loaded += new RoutedEventHandler(TestUserControl_Loaded);
-			this.Unloaded += new RoutedEventHandler(TestUserControl_Unloaded);
+			this.Loaded += TestUserControl_Loaded;
+			this.Unloaded += TestUserControl_Unloaded;
 		}
 
 		void TestUserControl_Unloaded(object sender, RoutedEventArgs e)

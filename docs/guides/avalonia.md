@@ -182,19 +182,20 @@ dotnet run --project source/AvalonDockAvaloniaApp
 
 ## Demo applications
 
-`source/AvaloniaDemoProject` ports the two WPF demo applications to Avalonia:
+The two WPF demo applications have an Avalonia build next to their WPF project, made the same way as
+the library: `TestApp.Avalonia.csproj` and `AvalonDockCodeApp.Avalonia.csproj` compile the files of
+their folder with `AVALONIA` defined. The markup is `Name.axaml` next to `Name.xaml`, the code-behind
+and view models are shared with small `#if AVALONIA` blocks, and the few Avalonia-only files are named
+`Name.Avalonia.cs` (the WPF projects skip them).
 
 ```bash
-# Port of source/TestApp (DockingManager)
-dotnet run --project source/AvaloniaDemoProject
+# TestApp (DockingManager)
+dotnet run --project source/TestApp/TestApp.Avalonia.csproj
 
-# Port of source/AvalonDockCodeApp (ToggleDockingManager, MVVM + dependency injection)
-dotnet run --project source/AvaloniaDemoProject -- --app code
+# AvalonDockCodeApp (ToggleDockingManager, MVVM + dependency injection)
+dotnet run --project source/AvalonDockCodeApp/AvalonDockCodeApp.Avalonia.csproj
 ```
 
 Both keep the window titles, menu headers, tool window titles and content ids of the WPF applications.
-The code application compiles the view models of `source/AvalonDockCodeApp/ViewModels` unchanged apart from
-a few `#if AVALONIA` using aliases (the project defines `AVALONIA`); two small shims stand in for
-`Dispatcher` and `Microsoft.Win32.OpenFolderDialog`. Only the views, the WPF-only icon helpers and the
-main windows are written for Avalonia. What is not ported: WinForms hosting (a placeholder takes its
-place) and the WPF themes other than the default one (light and dark are available).
+What is not ported: WinForms hosting (a placeholder takes its place) and the WPF themes other than the
+default one (light and dark are available).

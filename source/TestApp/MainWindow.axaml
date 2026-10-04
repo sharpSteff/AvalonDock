@@ -94,7 +94,7 @@
 							<ad:LayoutDocument
 								Title="Document 1"
 								ContentId="document1"
-								IconSource="avares://AvaloniaDemoProject/TestApp/Images/alarm-clock-blue.png">
+								IconSource="avares://TestApp.Avalonia/Images/alarm-clock-blue.png">
 								<Grid Background="Transparent" RowDefinitions="*,Auto">
 									<Button
 										Height="28"
@@ -145,7 +145,7 @@
 							<ad:LayoutAnchorable
 								Title="AutoHide1 Content"
 								ContentId="AutoHide1Content"
-								IconSource="avares://AvaloniaDemoProject/TestApp/Images/address-book--pencil.png">
+								IconSource="avares://TestApp.Avalonia/Images/address-book--pencil.png">
 								<TextBox
 									x:Name="tbAutoHide1Timer"
 									Background="Transparent"

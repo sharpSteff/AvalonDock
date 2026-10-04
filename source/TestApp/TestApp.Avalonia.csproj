@@ -1,0 +1,55 @@
+<Project>
+	<!-- Avalonia build of TestApp. It compiles the sources of this folder - the same files as
+	     TestApp.csproj - with AVALONIA defined, like AvalonDock.Avalonia.csproj does for the library:
+	       - the markup is Name.axaml next to Name.xaml;
+	       - small differences in the code-behind sit behind #if AVALONIA in the shared file;
+	       - Avalonia-only code lives in Name.Avalonia.cs (TestApp.csproj skips those files);
+	       - the WinForms control and the other WPF-only files are removed below. -->
+
+	<!-- Both projects live in this folder, so this one keeps its intermediate and output files apart.
+	     These must be set before the SDK props are imported. -->
+	<PropertyGroup>
+		<BaseIntermediateOutputPath>obj\Avalonia\</BaseIntermediateOutputPath>
+		<BaseOutputPath>bin\Avalonia\</BaseOutputPath>
+	</PropertyGroup>
+	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>TestApp</RootNamespace>
+		<AssemblyName>TestApp.Avalonia</AssemblyName>
+		<IsPackable>false</IsPackable>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+		<DefineConstants>$(DefineConstants);AVALONIA</DefineConstants>
+		<!-- Sample app: allow warnings -->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Components\AvalonDock\AvalonDock.Avalonia.csproj" />
+		<ProjectReference Include="..\Components\AvalonDock.Serializer.Xml\AvalonDock.Serializer.Xml.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- The WPF build's intermediate and output files. -->
+		<Compile Remove="obj\**;bin\**" />
+		<AvaloniaXaml Remove="obj\**;bin\**" />
+		<EmbeddedResource Remove="obj\**;bin\**" />
+		<None Remove="obj\**;bin\**" />
+
+		<!-- WPF only: the WinForms control (WinFormsPlaceholder.Avalonia.cs takes its place). -->
+		<Compile Remove="UserControl1.cs;UserControl1.Designer.cs" />
+		<EmbeddedResource Remove="UserControl1.resx" />
+
+		<AvaloniaResource Include="Images\*.png" />
+	</ItemGroup>
+
+	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

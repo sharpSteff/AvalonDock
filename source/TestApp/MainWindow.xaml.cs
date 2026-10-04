@@ -7,6 +7,23 @@
    License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
  ************************************************************************/
 
+#if AVALONIA
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using AvalonDock;
+using AvalonDock.Layout;
+using AvalonDock.Serializer.Xml;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Styling;
+using Avalonia.Threading;
+#else
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -26,6 +43,7 @@ using AvalonDock;
 using AvalonDock.Themes;
 using AvalonDock.Themes.VS;
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace TestApp
 {
@@ -33,7 +51,11 @@ namespace TestApp
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
 	[SuppressMessage("Maintainability", "CA1506:Avoid excessive class coupling", Justification = "MainWindow intentionally orchestrates many UI framework types in this sample app.")]
+#if AVALONIA
+	public partial class MainWindow : Window, INotifyPropertyChanged
+#else
 	public partial class MainWindow : Window
+#endif
 	{
 
 		public MainWindow()
@@ -51,7 +73,11 @@ namespace TestApp
 					TestBackground = new SolidColorBrush(Color.FromRgb(
 						(byte)rnd.Next(0, 255), (byte)rnd.Next(0, 255), (byte)rnd.Next(0, 255)));
 
+#if AVALONIA
+					FocusedElement = FocusManager?.GetFocusedElement()?.ToString() ?? string.Empty;
+#else
 					FocusedElement = Keyboard.FocusedElement == null ? string.Empty : Keyboard.FocusedElement.ToString();
+#endif
 					//Debug.WriteLine(string.Format("ActiveContent = {0}", dockManager.ActiveContent));
 
 				};
@@ -59,11 +85,59 @@ namespace TestApp
 
 			this.DataContext = this;
 
+#if AVALONIA
+			// WPF attaches these two handlers in MainWindow.xaml.
+			dockManager.Layout.PropertyChanged += OnLayoutRootPropertyChanged;
+			dockManager.Layout.Descendents().OfType<LayoutAnchorable>().Single(a => a.ContentId == "toolWindow1").Hiding += OnToolWindow1Hiding;
+			Closed += (s, e) => timer.Stop();
+#else
 			winFormsHost.Child = new UserControl1();
 
 			UpdateThemeColors();
+#endif
 
 		}
+
+#if AVALONIA
+		private int _testTimer;
+		private IBrush _testBackground;
+		private string _focusedElement = string.Empty;
+
+		public new event PropertyChangedEventHandler PropertyChanged;
+
+		/// <summary>
+		/// Gets or sets a test timer that elapses every second (just for binding test).
+		/// </summary>
+		public int TestTimer
+		{
+			get => _testTimer;
+			set => SetField(ref _testTimer, value);
+		}
+
+		/// <summary>
+		/// Gets or sets a randomly changing brush (just for testing).
+		/// </summary>
+		public IBrush TestBackground
+		{
+			get => _testBackground;
+			set => SetField(ref _testBackground, value);
+		}
+
+		/// <summary>
+		/// Gets or sets a description of the element with keyboard focus.
+		/// </summary>
+		public string FocusedElement
+		{
+			get => _focusedElement;
+			set => SetField(ref _focusedElement, value);
+		}
+
+		private void SetField<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			field = value;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+#else
 
 
 		/// <summary>
@@ -120,6 +194,7 @@ namespace TestApp
 			get => (string)GetValue(FocusedElementProperty);
 			set => SetValue(FocusedElementProperty, value);
 		}
+#endif
 
 
 		private void OnLayoutRootPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -144,7 +219,11 @@ namespace TestApp
 			//        if (prevContent != null)
 			//            args.Content = prevContent.Content;
 			//    };
+#if AVALONIA
+			using (var stream = new StreamReader(Path.Combine(AppContext.BaseDirectory, $"AvalonDock_{fileName}.config")))
+#else
 			using (var stream = new StreamReader(string.Format(@".\AvalonDock_{0}.config", fileName)))
+#endif
 				serializer.Deserialize(stream);
 		}
 
@@ -153,7 +232,11 @@ namespace TestApp
 		{
 			string fileName = (sender as MenuItem).Header.ToString();
 			var serializer = new XmlLayoutSerializer(dockManager);
+#if AVALONIA
+			using (var stream = new StreamWriter(Path.Combine(AppContext.BaseDirectory, $"AvalonDock_{fileName}.config")))
+#else
 			using (var stream = new StreamWriter(string.Format(@".\AvalonDock_{0}.config", fileName)))
+#endif
 				serializer.Serialize(stream);
 		}
 
@@ -219,7 +302,11 @@ namespace TestApp
 
 		private void DockManager_DocumentClosing(object sender, DocumentClosingEventArgs e)
 		{
+#if AVALONIA
+			if (!ConfirmDialog.Ask(this, "Are you sure you want to close the document?", "AvalonDock Sample"))
+#else
 			if (MessageBox.Show("Are you sure you want to close the document?", "AvalonDock Sample", MessageBoxButton.YesNo) == MessageBoxResult.No)
+#endif
 				e.Cancel = true;
 		}
 
@@ -247,7 +334,11 @@ namespace TestApp
 
 		private void OnToolWindow1Hiding(object sender, System.ComponentModel.CancelEventArgs e)
 		{
+#if AVALONIA
+			if (!ConfirmDialog.Ask(this, "Are you sure you want to hide this tool?", "AvalonDock"))
+#else
 			if (MessageBox.Show("Are you sure you want to hide this tool?", "AvalonDock", MessageBoxButton.YesNo) == MessageBoxResult.No)
+#endif
 				e.Cancel = true;
 		}
 
@@ -275,6 +366,27 @@ namespace TestApp
             anchorable.Float();
         }
 
+#if AVALONIA
+		private void OnSwitchTheme(object sender, RoutedEventArgs e)
+		{
+			// The Avalonia build has one theme, in a dark and a light variant.
+			if (sender is MenuItem { Tag: string themeTag } && Application.Current != null)
+				Application.Current.RequestedThemeVariant = themeTag == "Light" ? ThemeVariant.Light : ThemeVariant.Dark;
+		}
+
+		// The Edit menu acts on the focused text box, like WPF's application commands do.
+		private TextBox FocusedTextBox => FocusManager?.GetFocusedElement() as TextBox;
+
+		private void OnUndo(object sender, RoutedEventArgs e) => FocusedTextBox?.Undo();
+
+		private void OnRedo(object sender, RoutedEventArgs e) => FocusedTextBox?.Redo();
+
+		private void OnCut(object sender, RoutedEventArgs e) => FocusedTextBox?.Cut();
+
+		private void OnCopy(object sender, RoutedEventArgs e) => FocusedTextBox?.Copy();
+
+		private void OnPaste(object sender, RoutedEventArgs e) => FocusedTextBox?.Paste();
+#else
 		private void OnSwitchTheme(object sender, RoutedEventArgs e)
 		{
 			var menuItem = sender as MenuItem;
@@ -380,5 +492,6 @@ namespace TestApp
 			}
 			return false;
 		}
+#endif
     }
 }

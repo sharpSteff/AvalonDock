@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Threading;
 
-namespace AvaloniaDemoProject.Shared;
+namespace TestApp;
 
 /// <summary>
 /// A Yes/No question in a modal window - what the WPF applications ask with <c>MessageBox.Show</c>. The

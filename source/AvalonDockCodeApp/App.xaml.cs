@@ -1,10 +1,21 @@
 using System;
+#if !AVALONIA
 using System.Windows;
+#endif
 using AvalonDock;
 using AvalonDock.Core;
 using AvalonDock.DependencyInjection;
+#if AVALONIA
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Templates;
+using Avalonia.Markup.Xaml;
+#endif
 using Microsoft.Extensions.DependencyInjection;
 using ToggleTestApp.ViewModels;
+#if AVALONIA
+using ToggleTestApp.Views;
+#endif
 
 namespace ToggleTestApp;
 
@@ -12,6 +23,39 @@ public partial class App : Application
 {
 	private IServiceProvider? _serviceProvider;
 
+#if AVALONIA
+	public override void Initialize() => AvaloniaXamlLoader.Load(this);
+
+	public override void OnFrameworkInitializationCompleted()
+	{
+		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			var services = new ServiceCollection();
+			ConfigureServices(services);
+			_serviceProvider = services.BuildServiceProvider();
+			RegisterViews();
+
+			desktop.MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+			desktop.Exit += (_, _) => (_serviceProvider as IDisposable)?.Dispose();
+		}
+
+		base.OnFrameworkInitializationCompleted();
+	}
+
+	/// <summary>
+	/// The implicit DataTemplates of the WPF MainWindow.xaml. They are registered with the application rather
+	/// than the main window so that tool windows in floating and standalone windows find them as well.
+	/// </summary>
+	private void RegisterViews()
+	{
+		DataTemplates.Add(new FuncDataTemplate<FolderExplorerViewModel>((_, _) => new FolderExplorerView()));
+		DataTemplates.Add(new FuncDataTemplate<TerminalViewModel>((_, _) => new TerminalView()));
+		DataTemplates.Add(new FuncDataTemplate<SearchViewModel>((_, _) => new SearchView()));
+		DataTemplates.Add(new FuncDataTemplate<SourceControlViewModel>((_, _) => new SourceControlView()));
+		DataTemplates.Add(new FuncDataTemplate<ProblemsViewModel>((_, _) => new ProblemsView()));
+		DataTemplates.Add(new FuncDataTemplate<EditorTabViewModel>((_, _) => new EditorView()));
+	}
+#else
 	protected override void OnStartup(StartupEventArgs e)
 	{
 		base.OnStartup(e);
@@ -23,6 +67,7 @@ public partial class App : Application
 		var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
 		mainWindow.Show();
 	}
+#endif
 
 	private static void ConfigureServices(IServiceCollection services)
 	{
@@ -53,6 +98,7 @@ public partial class App : Application
 		services.AddSingleton<MainWindow>();
 	}
 
+#if !AVALONIA
 	protected override void OnExit(ExitEventArgs e)
 	{
 		if (_serviceProvider is IDisposable disposable)
@@ -62,4 +108,5 @@ public partial class App : Application
 
 		base.OnExit(e);
 	}
+#endif
 }
