@@ -16,9 +16,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          # external/ui-labs: the DevFlow agent and driver the UI tests use.
-          submodules: recursive
+
+      # external/ui-labs: the DevFlow agent and driver the UI tests use. Checked out separately, because
+      # maui-labs inside it has paths longer than Windows allows unless core.longpaths is set.
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git config --global core.longpaths true
+          git submodule update --init --recursive --depth 1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6

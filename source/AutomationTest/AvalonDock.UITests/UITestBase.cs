@@ -122,14 +122,34 @@ public abstract class UITestBase
 	/// </summary>
 	protected async Task<ElementInfo?> FindToolWindowHeaderAsync(string title)
 	{
-		foreach (var root in await GetTreeAsync())
+		var roots = await GetTreeAsync();
+
+		// In order of preference: a tab selects the tool window without touching the pane's buttons.
+		foreach (var type in new[] { "LayoutAnchorableTabItem", "LayoutAnchorControl", "AnchorablePaneTitle" })
 		{
-			var header = FindContainerShowing(root, title, "LayoutAnchorableTabItem", "AnchorablePaneTitle", "LayoutAnchorControl");
-			if (header != null)
-				return header;
+			foreach (var root in roots)
+			{
+				var header = FindContainerShowing(root, title, type);
+				if (header != null)
+					return header;
+			}
 		}
 
 		return null;
+	}
+
+	/// <summary>Clicks the title text of a tool window's header (see <see cref="FindToolWindowHeaderAsync"/>).</summary>
+	protected async Task TapToolWindowHeaderAsync(string title)
+	{
+		var header = await WaitForElementAsync(() => FindToolWindowHeaderAsync(title), $"the header of '{title}'");
+		await TapAsync(FindDescendant(header, e => e.IsVisible && e.Text == title) ?? header);
+	}
+
+	/// <summary>Selects a tool window by clicking its header, and waits until the layout model has it selected.</summary>
+	protected async Task ActivateToolWindowAsync(string title)
+	{
+		await TapToolWindowHeaderAsync(title);
+		await WaitUntilAsync(async () => (await FindContentAsync(title))?.IsSelected == true, $"'{title}' to be selected");
 	}
 
 	protected async Task<ElementInfo?> FindByTextAsync(string text)
@@ -174,7 +194,7 @@ public abstract class UITestBase
 	protected async Task ActivateDocumentTabAsync(string title)
 	{
 		var tab = await WaitForElementAsync(() => FindDocumentTabAsync(title), $"the tab of '{title}'");
-		await TapAsync(tab);
+		await TapAsync(FindDescendant(tab, e => e.IsVisible && e.Text == title) ?? tab);
 		await WaitUntilAsync(async () => (await FindContentAsync(title))?.IsSelected == true, $"'{title}' to be selected");
 	}
 

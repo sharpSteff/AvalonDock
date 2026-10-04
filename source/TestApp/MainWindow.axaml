@@ -114,7 +114,7 @@
 									Background="Transparent"
 									BorderThickness="0"
 									IsReadOnly="True"
-									Text="{Binding TestTimer, Mode=OneWay, StringFormat='Document 2 Attached to Timer ->{0}'}" />
+									Text="{Binding TestTimer, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, StringFormat='Document 2 Attached to Timer ->{0}'}" />
 							</ad:LayoutDocument>
 						</ad:LayoutDocumentPane>
 					</ad:LayoutDocumentPaneGroup>
@@ -129,7 +129,7 @@
 										x:Name="tbToolWindow1Timer"
 										Background="Transparent"
 										IsReadOnly="True"
-										Text="{Binding TestTimer, Mode=OneWay, StringFormat='Tool Window 1 Attached to Timer ->{0}'}" />
+										Text="{Binding TestTimer, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, StringFormat='Tool Window 1 Attached to Timer ->{0}'}" />
 								</StackPanel>
 							</ad:LayoutAnchorable>
 							<ad:LayoutAnchorable Title="Tool Window 2" ContentId="toolWindow2">
@@ -150,7 +150,7 @@
 									x:Name="tbAutoHide1Timer"
 									Background="Transparent"
 									IsReadOnly="True"
-									Text="{Binding TestTimer, Mode=OneWay, StringFormat='AutoHide Attached to Timer ->{0}'}" />
+									Text="{Binding TestTimer, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, StringFormat='AutoHide Attached to Timer ->{0}'}" />
 							</ad:LayoutAnchorable>
 							<ad:LayoutAnchorable Title="AutoHide2 Content" ContentId="AutoHide2Content">
 								<StackPanel
