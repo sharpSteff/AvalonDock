@@ -414,7 +414,9 @@ public abstract class UITestBase
 
 	private static ElementInfo? FindContainerShowing(ElementInfo element, string text, params string[] containerTypes)
 	{
-		if (containerTypes.Contains(element.Type) && element.IsVisible && ShowsText(element, text))
+		// Visible and laid out: WPF reports the tab of a pane's only tool window, which the pane hides by
+		// collapsing its tab strip, as visible but without bounds.
+		if (containerTypes.Contains(element.Type) && element.IsVisible && element.Bounds is { Width: > 0, Height: > 0 } && ShowsText(element, text))
 			return element;
 
 		if (element.Children == null)
